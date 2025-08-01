@@ -1,0 +1,98 @@
+﻿<Patient xmlns="http://hl7.org/fhir">
+  <id value="example-irrs-patient"/>
+  <meta>
+    <profile value="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-patient"/>
+  </meta>
+  <text>
+    <status value="generated"/>
+    <div xmlns="http://www.w3.org/1999/xhtml">
+      <p>
+        <b>Generated Narrative with Details</b>
+      </p>
+      <p>
+        <b>id</b>: example-irrs-patient
+      </p>
+      <p>
+        <b>meta</b>:
+      </p>
+      <p>
+        <b>identifier</b>: Jurisdictional health number (Canada) = 1312121211SS, Medical record number = CRN-12345
+      </p>
+      <p>
+        <b>birthDate</b>: Sep 1, 2008
+      </p>
+      <p>
+        <b>address</b>: Z1Z1Z1 (HOME)
+      </p>
+      <h3>Communications</h3>
+      <table class="grid">
+        <tr>
+          <td>-</td>
+          <td>
+            <b>Language</b>
+          </td>
+        </tr>
+        <tr>
+          <td>*</td>
+          <td>
+            en <span style="background: LightGoldenRodYellow">(Details : {[not stated] code 'en' = 'en)</span>
+          </td>
+        </tr>
+      </table>
+      <p>
+        <b>managingOrganization</b>:
+      </p>
+    </div>
+  </text>
+  <!--  Sex at birth  -->
+  <extension
+             url="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-birth-sex">
+    <valueCode value="F"/>
+  </extension>
+  <!--  Health card number  -->
+  <identifier>
+    <type>
+      <coding>
+        <system value="http://hl7.org/fhir/v2/0203"/>
+        <code value="JHN"/>
+      </coding>
+    </type>
+    <system
+            value="https://fhir.infoway-inforoute.ca/NamingSystem/ca-on-patient-hcn"/>
+    <value value="1312121211SS"/>
+  </identifier>
+  <!--  Case record number  -->
+  <identifier>
+    <type>
+      <coding>
+        <system value="http://hl7.org/fhir/v2/0203"/>
+        <code value="MR"/>
+      </coding>
+    </type>
+    <system value="http://acme.vendor.com/facility-x"/>
+    <value value="CRN-12345"/>
+  </identifier>
+  <!--  Birth date  -->
+  <birthDate value="2008-09-01"/>
+  <!--  Postal Code  -->
+  <address>
+    <use value="home"/>
+    <postalCode value="Z1Z1Z1"/>
+  </address>
+  <!--  Primary Language  -->
+  <communication>
+    <language>
+      <coding>
+        <code value="en"/>
+      </coding>
+    </language>
+  </communication>
+  <!--  Facility/Agency identifier  -->
+  <managingOrganization>
+    <identifier>
+      <system
+              value="http://cihi.ca/fhir/NamingSystem/on-moh-submission-identifier"/>
+      <value value="CIHITESTIRRS30"/>
+    </identifier>
+  </managingOrganization>
+</Patient>
