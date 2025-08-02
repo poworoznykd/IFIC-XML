@@ -1,13 +1,13 @@
-﻿<Bundle xmlns="http://hl7.org/fhir">
+<?xml version='1.0' encoding='UTF-8'?>
+<Bundle xmlns="http://hl7.org/fhir">
   <id value="example-irrs-ltcf"/>
   <type value="transaction"/>
   <entry>
-    <fullUrl value="urn:uuid:8d307857-bbd5-464d-b689-0ff478d05dd5"/>
+    <fullUrl value="urn:uuid:d35219f8-1446-4dac-b8ec-9d3753d614de"/>
     <resource>
       <Encounter>
         <meta>
-          <profile
-                   value="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-encounter"/>
+          <profile value="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-encounter"/>
         </meta>
         <text>
           <status value="generated"/>
@@ -25,7 +25,7 @@
               <b>status</b>: planned
             </p>
             <p>
-              <b>subject</b>: <a href="urn:uuid:9a5fb58a-1ba6-474c-9187-4f1b79b6099c">urn:uuid:9a5fb58a-1ba6-474c-9187-4f1b79b6099c</a>
+              <b>subject</b>: <a href="urn:uuid:c0ac6677-8f38-48fb-ad87-f9b5d68fed1a">urn:uuid:c0ac6677-8f38-48fb-ad87-f9b5d68fed1a</a>
             </p>
             <p>
               <b>period</b>: Jan 1, 2017 --&gt; (ongoing)
@@ -55,8 +55,7 @@
           <Coverage>
             <id value="iA7a"/>
             <meta>
-              <profile
-                       value="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-coverage"/>
+              <profile value="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-coverage"/>
             </meta>
             <type>
               <coding>
@@ -72,8 +71,7 @@
           <Account>
             <id value="paymentSources"/>
             <meta>
-              <profile
-                       value="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-account"/>
+              <profile value="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-account"/>
             </meta>
             <type>
               <coding>
@@ -91,8 +89,7 @@
           <Location>
             <id value="admittedFrom"/>
             <meta>
-              <profile
-                       value="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-admission"/>
+              <profile value="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-admission"/>
             </meta>
             <type>
               <coding>
@@ -103,7 +100,7 @@
         </contained>
         <status value="planned"/>
         <subject>
-          <reference value="urn:uuid:9a5fb58a-1ba6-474c-9187-4f1b79b6099c"/>
+          <reference value="urn:uuid:c0ac6677-8f38-48fb-ad87-f9b5d68fed1a"/>
         </subject>
         <period>
           <!--  Case open or return date for when this encounter started  -->
@@ -120,8 +117,7 @@
         <!--  Facility/Agency identifier  -->
         <serviceProvider>
           <identifier>
-            <system
-                    value="http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier"/>
+            <system value="http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier"/>
             <value value="CIHITESTIRRS30"/>
           </identifier>
         </serviceProvider>
@@ -129,11 +125,11 @@
     </resource>
     <request>
       <method value="POST"/>
-      <url value="urn:uuid:8d307857-bbd5-464d-b689-0ff478d05dd5"/>
+      <url value="urn:uuid:d35219f8-1446-4dac-b8ec-9d3753d614de"/>
     </request>
   </entry>
   <entry>
-    <fullUrl value="urn:uuid:1c51ec04-71e8-4a89-8877-ec27cb02bf16"/>
+    <fullUrl value="urn:uuid:935a05e4-4968-4e4f-93ad-75554b35d689"/>
     <resource>
       <QuestionnaireResponse>
         <text>
@@ -149,10 +145,10 @@
               <b>status</b>: completed
             </p>
             <p>
-              <b>subject</b>: <a href="urn:uuid:9a5fb58a-1ba6-474c-9187-4f1b79b6099c">urn:uuid:9a5fb58a-1ba6-474c-9187-4f1b79b6099c</a>
+              <b>subject</b>: <a href="urn:uuid:c0ac6677-8f38-48fb-ad87-f9b5d68fed1a">urn:uuid:c0ac6677-8f38-48fb-ad87-f9b5d68fed1a</a>
             </p>
             <p>
-              <b>context</b>: <a href="urn:uuid:8d307857-bbd5-464d-b689-0ff478d05dd5">urn:uuid:8d307857-bbd5-464d-b689-0ff478d05dd5</a>
+              <b>context</b>: <a href="urn:uuid:935a05e4-4968-4e4f-93ad-75554b35d689">urn:uuid:935a05e4-4968-4e4f-93ad-75554b35d689</a>
             </p>
             <blockquote>
               <p>
@@ -713,11 +709,11 @@
         </questionnaire>
         <status value="completed"/>
         <subject>
-          <reference value="urn:uuid:9a5fb58a-1ba6-474c-9187-4f1b79b6099c"/>
+          <reference value="urn:uuid:c0ac6677-8f38-48fb-ad87-f9b5d68fed1a"/>
         </subject>
-        <context>
-          <reference value="urn:uuid:8d307857-bbd5-464d-b689-0ff478d05dd5"/>
-        </context>
+       <context>
+		  <reference value="urn:uuid:d35219f8-1446-4dac-b8ec-9d3753d614de"/>
+		</context>
         <item>
           <linkId value="A"/>
           <item>
@@ -2562,8 +2558,7 @@
             <item>
               <linkId value="N1b1"/>
               <answer>
-                <valueString value="1"/>
-              </answer>
+                <valueDecimal value="1"/></answer>
             </item>
             <item>
               <linkId value="N1c1"/>
@@ -2611,8 +2606,7 @@
             <item>
               <linkId value="N1b1"/>
               <answer>
-                <valueString value="400"/>
-              </answer>
+                <valueDecimal value="400"/></answer>
             </item>
             <item>
               <linkId value="N1c1"/>
@@ -2660,8 +2654,7 @@
             <item>
               <linkId value="N1b1"/>
               <answer>
-                <valueString value="150"/>
-              </answer>
+                <valueDecimal value="150"/></answer>
             </item>
             <item>
               <linkId value="N1c1"/>
@@ -2709,8 +2702,7 @@
             <item>
               <linkId value="N1b1"/>
               <answer>
-                <valueString value="100"/>
-              </answer>
+                <valueDecimal value="100"/></answer>
             </item>
             <item>
               <linkId value="N1c1"/>
@@ -2758,8 +2750,7 @@
             <item>
               <linkId value="N1b1"/>
               <answer>
-                <valueString value="1"/>
-              </answer>
+                <valueDecimal value="1"/></answer>
             </item>
             <item>
               <linkId value="N1c1"/>
@@ -2807,8 +2798,7 @@
             <item>
               <linkId value="N1b1"/>
               <answer>
-                <valueString value="100"/>
-              </answer>
+                <valueDecimal value="100"/></answer>
             </item>
             <item>
               <linkId value="N1c1"/>
@@ -2856,8 +2846,7 @@
             <item>
               <linkId value="N1b1"/>
               <answer>
-                <valueString value="8"/>
-              </answer>
+                <valueDecimal value="8"/></answer>
             </item>
             <item>
               <linkId value="N1c1"/>
@@ -2905,8 +2894,7 @@
             <item>
               <linkId value="N1b1"/>
               <answer>
-                <valueString value="400"/>
-              </answer>
+                <valueDecimal value="400"/></answer>
             </item>
             <item>
               <linkId value="N1c1"/>
@@ -2954,8 +2942,7 @@
             <item>
               <linkId value="N1b1"/>
               <answer>
-                <valueString value="100"/>
-              </answer>
+                <valueDecimal value="100"/></answer>
             </item>
             <item>
               <linkId value="N1c1"/>
@@ -3554,16 +3541,15 @@
     </resource>
     <request>
       <method value="POST"/>
-      <url value="urn:uuid:1c51ec04-71e8-4a89-8877-ec27cb02bf16"/>
+      <url value="urn:uuid:935a05e4-4968-4e4f-93ad-75554b35d689"/>
     </request>
   </entry>
   <entry>
-    <fullUrl value="urn:uuid:9a5fb58a-1ba6-474c-9187-4f1b79b6099c"/>
+    <fullUrl value="urn:uuid:c0ac6677-8f38-48fb-ad87-f9b5d68fed1a"/>
     <resource>
       <Patient>
         <meta>
-          <profile
-                   value="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-patient"/>
+          <profile value="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-patient"/>
         </meta>
         <text>
           <status value="generated"/>
@@ -3575,7 +3561,7 @@
               <b>meta</b>:
             </p>
             <p>
-              <b>identifier</b>: Jurisdictional health number (Canada) = ??, Medical record number = TESTCRN01LTC
+              <b>identifier</b>: Jurisdictional health number (Canada) = ??, Medical record number = TESTCRN11LTC
             </p>
             <p>
               <b>birthDate</b>: Sep 1, 2008
@@ -3607,14 +3593,12 @@
           </div>
         </text>
         <!--  Sex at birth  -->
-        <extension
-                   url="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-birth-sex">
+        <extension url="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-birth-sex">
           <valueCode value="M"/>
         </extension>
         <!--  Health card number that is unknown -->
         <identifier>
-          <extension
-                     url="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-data-absent-reason">
+          <extension url="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-data-absent-reason">
             <valueCode value="unknown"/>
           </extension>
           <type>
@@ -3633,7 +3617,7 @@
             </coding>
           </type>
           <system value="http://cihi.ca/NamingSystem/rshnaper-1542225050256"/>
-          <value value="TESTCRN01LTC"/>
+          <value value="TESTCRN11LTC"/>
         </identifier>
         <!--  Birth date  -->
         <birthDate value="2008-09-01"/>
@@ -3658,8 +3642,7 @@
         <!--  Facility/Agency identifier  -->
         <managingOrganization>
           <identifier>
-            <system
-                    value="http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier"/>
+            <system value="http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier"/>
             <value value="CIHITESTIRRS30"/>
           </identifier>
         </managingOrganization>
@@ -3667,7 +3650,7 @@
     </resource>
     <request>
       <method value="POST"/>
-      <url value="urn:uuid:9a5fb58a-1ba6-474c-9187-4f1b79b6099c"/>
+      <url value="urn:uuid:c0ac6677-8f38-48fb-ad87-f9b5d68fed1a"/>
     </request>
   </entry>
 </Bundle>
