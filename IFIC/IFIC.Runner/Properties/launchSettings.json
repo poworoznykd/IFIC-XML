@@ -2,7 +2,7 @@
   "profiles": {
     "IFIC.Runner": {
       "commandName": "Project",
-      "commandLineArgs": "--simulate Example-Full-Bundle.xml\r\n\r\n"
+      "commandLineArgs": "--simulate Example-Patient.xml\r\n\r\n"
     }
   }
 }
