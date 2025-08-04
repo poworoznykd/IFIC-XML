@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -9,29 +8,16 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.7" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.7" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.13.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.13.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApiClient\ApiClient.csproj" />
     <ProjectReference Include="..\IFIC.Auth\IFIC.Auth.csproj" />
-    <ProjectReference Include="..\IFIC.FileIngestor\IFIC.FileIngestor.csproj" />
   </ItemGroup>
-  
-	<ItemGroup>
-	  <None Update="appsettings.json">
-		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="certs\ltcf-clrty_cihi_cihitestirrs30.key">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	</ItemGroup>
-  
-	<ItemGroup>
-	  <Folder Include="Logs\" />
-	  <Folder Include="Output\" />
-	</ItemGroup>
-
 
 </Project>

@@ -1,19 +1,17 @@
-﻿/*
- * FILE          : IRRSApiClient.cs
- * PROJECT       : IFIC - IRRS/FHIR Intermediary Component
- * PROGRAMMER    : Darryl Poworoznyk
- * FIRST VERSION : 2025-08-01
- * DESCRIPTION   :
- *   Handles submission of XML FHIR Bundles to CIHI IRRS API using OAuth2
- *   authentication and Bearer token authorization.
- */
+﻿/************************************************************************************
+* FILE          : IRRSApiClient.cs
+* PROJECT       : IFIC - IRRS/FHIR Intermediary Component
+* PROGRAMMER    : Darryl Poworoznyk
+* FIRST VERSION : 2025-08-02
+* DESCRIPTION   :
+*   Handles HTTP POST submissions of FHIR XML bundles to CIHI IRRS API.
+*   Implements IApiClient interface.
+************************************************************************************/
 
 using System;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using IFIC.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -21,77 +19,50 @@ namespace IFIC.ApiClient
 {
     public class IRRSApiClient : IApiClient
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IAuthManager _authManager;
-        private readonly ILogger<IRRSApiClient> _logger;
+        private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
+        private readonly ILogger<IRRSApiClient> _logger;
 
-        /*
-         * FUNCTION      : IRRSApiClient
-         * DESCRIPTION   :
-         *   Constructor initializes dependencies for XML submission.
-         */
-        public IRRSApiClient(
-            IHttpClientFactory httpClientFactory,
-            IAuthManager authManager,
-            ILogger<IRRSApiClient> logger,
-            IConfiguration config)
+        public IRRSApiClient(HttpClient httpClient, IConfiguration config, ILogger<IRRSApiClient> logger)
         {
-            _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
-            _authManager = authManager ?? throw new ArgumentNullException(nameof(authManager));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /*
-         * FUNCTION      : SubmitXmlAsync
-         * DESCRIPTION   :
-         *   Submits an XML FHIR bundle to CIHI IRRS endpoint using a Bearer token.
-         * PARAMETERS    :
-         *   string xmlContent : XML payload string to submit
-         * RETURNS       :
-         *   Task : Asynchronous operation for submission
-         */
-        public async Task SubmitXmlAsync(string xmlContent)
+        /// <summary>
+        /// Submits XML payload to CIHI API endpoint asynchronously.
+        /// </summary>
+        /// <param name="xmlContent">FHIR XML string to submit</param>
+        /// <returns>Response content as string</returns>
+        public async Task<string> SubmitXmlAsync(string xmlContent)
         {
             if (string.IsNullOrWhiteSpace(xmlContent))
             {
                 throw new ArgumentException("XML content cannot be null or empty.", nameof(xmlContent));
             }
 
-            string endpoint = _config["Api:SubmissionEndpoint"];
-            if (string.IsNullOrWhiteSpace(endpoint))
+            var submissionUrl = _config["Api:SubmissionEndpoint"];
+            if (string.IsNullOrEmpty(submissionUrl))
             {
-                _logger.LogError("Submission endpoint is missing in configuration.");
                 throw new InvalidOperationException("Submission endpoint is not configured.");
             }
 
-            _logger.LogInformation("Submitting XML payload to CIHI endpoint: {Endpoint}", endpoint);
+            _logger.LogInformation("Submitting XML to CIHI API: {Url}", submissionUrl);
 
-            // Get OAuth2 token
-            string token = await _authManager.GetAccessTokenAsync();
+            var content = new StringContent(xmlContent, Encoding.UTF8, "application/fhir+xml");
+            var response = await _httpClient.PostAsync(submissionUrl, content);
 
-            // Build HTTP request
-            var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
-            {
-                Content = new StringContent(xmlContent, Encoding.UTF8, "application/fhir+xml")
-            };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var responseString = await response.Content.ReadAsStringAsync();
 
-            var client = _httpClientFactory.CreateClient();
-
-            // Send request
-            _logger.LogInformation("Sending FHIR XML bundle...");
-            HttpResponseMessage response = await client.SendAsync(request);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("CIHI submission failed. Status: {Status}, Response: {Response}", response.StatusCode, responseContent);
-                throw new Exception($"Submission failed with status {response.StatusCode}");
+                _logger.LogError("Submission failed with status {StatusCode}. Response: {Response}", response.StatusCode, responseString);
+                throw new HttpRequestException($"Submission failed: {response.StatusCode} - {responseString}");
             }
 
-            _logger.LogInformation("Submission successful. CIHI Response: {Response}", responseContent);
+            _logger.LogInformation("Submission successful. Response length: {Length}", responseString.Length);
+            return responseString;
         }
     }
 }

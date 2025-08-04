@@ -1,12 +1,13 @@
-﻿/*
- * FILE          : Program.cs
- * PROJECT       : IFIC - IRRS/FHIR Intermediary Component
- * PROGRAMMER    : Darryl Poworoznyk
- * FIRST VERSION : 2025-08-01
- * DESCRIPTION   :
- *   Entry point for testing XML FHIR submission to CIHI using OAuth2.
- *   Allows simulation mode with a specific file from SampleXML folder.
- */
+﻿/************************************************************************************
+* FILE          : Program.cs
+* PROJECT       : IFIC-XML
+* PROGRAMMER    : Darryl Poworoznyk
+* FIRST VERSION : 2025-08-02
+* DESCRIPTION   :
+*   Main entry point for IFIC Runner. Supports:
+*     - Default Mode: Parse flat file → Build FHIR Patient Bundle → Save + Submit to CIHI
+*     - Simulation Mode (--simulate <filename>): Submits an existing XML file to CIHI
+************************************************************************************/
 
 using System;
 using System.IO;
@@ -15,73 +16,116 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using IFIC.Auth;
 using IFIC.ApiClient;
+using IFIC.Auth;
+using IFIC.FileIngestor.Builders;
+using IFIC.FileIngestor.Parsers;
+using IFIC.FileIngestor.Transformers;
 
 namespace IFIC.Runner
 {
     public class Program
     {
+        /// <summary>
+        /// Application entry point. Configures DI, logging, and runs the processing pipeline.
+        /// </summary>
+        /// <param name="args">Command-line arguments (--simulate optional)</param>
         public static async Task Main(string[] args)
         {
-            IHost host = CreateHostBuilder(args).Build();
+            Console.WriteLine("===== IFIC Runner Starting =====");
 
+            IHost host = CreateHostBuilder(args).Build();
             var logger = host.Services.GetRequiredService<ILogger<Program>>();
+            var apiClient = host.Services.GetRequiredService<IApiClient>();
 
             try
             {
-                logger.LogInformation("===== IFIC XML Submission Test Starting =====");
+                // Resolve paths
+                string baseDir = AppContext.BaseDirectory;
+                string outputFolder = Path.Combine(baseDir, "Output");
+                Directory.CreateDirectory(outputFolder);
 
-                // Determine file path based on arguments
-                string xmlFilePath;
+                string logFolder = Path.Combine(baseDir, "Logs");
+                Directory.CreateDirectory(logFolder);
+
+                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                string logFile = Path.Combine(logFolder, $"runlog_{timestamp}.txt");
 
                 if (args.Length >= 2 && args[0].Equals("--simulate", StringComparison.OrdinalIgnoreCase))
                 {
-                    // User provided a file name for simulation
-                    string fileName = args[1];
-                    string sampleFolder = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "IFIC.Runner", "SampleXML");
-                    xmlFilePath = Path.Combine(sampleFolder, fileName);
+                    // Simulation mode
+                    string xmlFileName = args[1];
+                    string sampleFolder = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SampleXML");
+                    string xmlFilePath = Path.Combine(sampleFolder, xmlFileName);
 
-                    logger.LogInformation("Simulation mode: Using file {File}", xmlFilePath);
+                    logger.LogInformation("[SIMULATE] Submitting {File} to CIHI API...", xmlFilePath);
+                    File.AppendAllText(logFile, $"Simulation mode. Submitting file: {xmlFilePath}{Environment.NewLine}");
+
+                    if (!File.Exists(xmlFilePath))
+                    {
+                        logger.LogError("Simulation XML file not found: {Path}", xmlFilePath);
+                        File.AppendAllText(logFile, $"ERROR: XML file not found: {xmlFilePath}{Environment.NewLine}");
+                        return;
+                    }
+
+                    string xmlContent = await File.ReadAllTextAsync(xmlFilePath);
+                    await apiClient.SubmitXmlAsync(xmlContent);
+
+                    logger.LogInformation("Simulation completed successfully.");
+                    File.AppendAllText(logFile, "Simulation completed successfully." + Environment.NewLine);
                 }
                 else
                 {
-                    // Default to Example-Full-Bundle.xml
-                    xmlFilePath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..",
-                        "IFIC.Runner", "SampleXML", "Example-Full-Bundle.xml");
+                    // Default mode: Process flat file → Build Bundle → Submit
+                    string flatFilePath = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SimpleFlatFiles", "Simple-Encounter.dat");
 
-                    logger.LogInformation("Default mode: Using file {File}", xmlFilePath);
+                    logger.LogInformation("Processing flat file: {File}", flatFilePath);
+                    File.AppendAllText(logFile, $"Processing flat file: {flatFilePath}{Environment.NewLine}");
+
+                    if (!File.Exists(flatFilePath))
+                    {
+                        logger.LogError("Flat file not found: {Path}", flatFilePath);
+                        File.AppendAllText(logFile, $"ERROR: Flat file not found: {flatFilePath}{Environment.NewLine}");
+                        return;
+                    }
+
+                    // Parse flat file
+                    var parser = new FlatFileParser();
+                    var parsedFile = parser.Parse(flatFilePath);
+
+                    //// Build FHIR Patient Bundle
+                    //var patientBuilder = new PatientXmlBuilder();
+                    //var patientDoc = patientBuilder.BuildPatientBundle(parsedFile);
+
+                    // Build FHIR Encounter Bundle
+                    var encounterBuilder = new EncounterXmlBuilder();
+                    var encounterDoc = encounterBuilder.BuildEncounterBundle(parsedFile);
+
+                    // Save XML locally
+                    string outputPath = Path.Combine(outputFolder, $"fhir_patient_bundle_{timestamp}.xml");
+                    await File.WriteAllTextAsync(outputPath, encounterDoc.ToString());
+                    logger.LogInformation("FHIR Bundle saved to: {OutputPath}", outputPath);
+                    File.AppendAllText(logFile, $"FHIR Bundle saved: {outputPath}{Environment.NewLine}");
+
+                    // Submit to CIHI
+                    string xmlContentForSubmit = encounterDoc.ToString();
+                    logger.LogInformation("Submitting bundle to CIHI...");
+                    File.AppendAllText(logFile, $"Submitting bundle at: {DateTime.Now}{Environment.NewLine}");
+                    await apiClient.SubmitXmlAsync(xmlContentForSubmit);
+
+                    logger.LogInformation("Submission completed successfully.");
+                    File.AppendAllText(logFile, "Submission completed successfully." + Environment.NewLine);
                 }
-
-                if (!File.Exists(xmlFilePath))
-                {
-                    logger.LogError("XML file not found: {Path}", xmlFilePath);
-                    return;
-                }
-
-                string xmlContent = await File.ReadAllTextAsync(xmlFilePath);
-
-                // Resolve ApiClient and submit XML content
-                var apiClient = host.Services.GetRequiredService<IApiClient>();
-                await apiClient.SubmitXmlAsync(xmlContent);
-
-                logger.LogInformation("===== XML Submission Completed Successfully =====");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred during XML submission.");
+                logger.LogError(ex, "An error occurred during processing.");
             }
         }
 
-        /*
-         * FUNCTION      : CreateHostBuilder
-         * DESCRIPTION   :
-         *   Configures the application host, dependency injection, and logging.
-         * PARAMETERS    :
-         *   string[] args : Command-line arguments
-         * RETURNS       :
-         *   IHostBuilder : Configured host builder instance
-         */
+        /// <summary>
+        /// Configures the host builder for dependency injection and logging.
+        /// </summary>
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, config) =>
@@ -95,7 +139,6 @@ namespace IFIC.Runner
                     services.AddSingleton<TokenService>();
                     services.AddSingleton<IAuthManager, AuthManager>();
                     services.AddSingleton<IApiClient, IRRSApiClient>();
-
                 })
                 .ConfigureLogging(logging =>
                 {

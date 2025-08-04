@@ -49,6 +49,8 @@
              url="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-birth-sex">
     <valueCode value="F"/>
   </extension>
+  
+  
   <!--  Health card number that is unknown -->
   <identifier>
     <extension
@@ -62,6 +64,8 @@
       </coding>
     </type>
   </identifier>
+  
+  
   <!--  Case record number  -->
   <identifier>
     <type>
