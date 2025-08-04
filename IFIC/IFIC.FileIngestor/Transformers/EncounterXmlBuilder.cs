@@ -31,7 +31,7 @@ namespace IFIC.FileIngestor.Transformers
             string patientId = Guid.NewGuid().ToString();
 
             // Extract encounter values from flat file
-              
+         
             parsedFile.Encounter.TryGetValue("B5A", out var admittedFrom);
             parsedFile.Encounter.TryGetValue("B2", out var stayStartDate);
             parsedFile.Encounter.TryGetValue("R1", out var stayEndDate);
@@ -62,7 +62,7 @@ namespace IFIC.FileIngestor.Transformers
                                 ? new XElement(ns + "contained",
                                     new XElement(ns + "Location",
                                         new XElement(ns + "id",
-                                            new XAttribute("value", admittedFrom)
+                                            new XAttribute("value", "admittedFrom")
                                         ),
                                         new XElement(ns + "meta",
                                             new XElement(ns + "profile",
@@ -72,15 +72,16 @@ namespace IFIC.FileIngestor.Transformers
                                         new XElement(ns + "type",
                                             new XElement(ns + "coding",
                                                 new XElement(ns + "code",
-                                                    new XAttribute("value", "PTRES")//TODO - hardcoded? (PTRES = Program Type Residence?)
+                                                    new XAttribute("value", admittedFrom)
                                                 )
                                             )
                                         ),
-                                        new XElement(ns + "managingOrganization",
+                                        !string.IsNullOrWhiteSpace(admittedFromFacilityNumber)
+                                        ? new XElement(ns + "managingOrganization",
                                             new XElement(ns + "identifier",
-                                                new XElement(ns + "value", new XAttribute("value", orgId))
+                                                new XElement(ns + "value", new XAttribute("value", admittedFromFacilityNumber))
                                             )
-                                        )
+                                        ) : null
                                     )
                                 )
                                 : null,
@@ -100,135 +101,136 @@ namespace IFIC.FileIngestor.Transformers
                                         new XElement(ns + "type",
                                             new XElement(ns + "coding",
                                                 new XElement(ns + "code",
-                                                    new XAttribute("value", "SEMIND")//TODO - hardcoded?
+                                                    new XAttribute("value", livingStatus)
                                                 )
                                             )
                                         ),
-                                        new XElement(ns + "managingOrganization",
+                                        !string.IsNullOrWhiteSpace(dischargedToFacilityNumber)
+                                        ? new XElement(ns + "managingOrganization",
                                             new XElement(ns + "identifier",
-                                                new XElement(ns + "value", new XAttribute("value", orgId))
+                                                new XElement(ns + "value", new XAttribute("value", dischargedToFacilityNumber))
                                             )
-                                        )
+                                        ) : null
                                     )
                                 )
                                 : null,
 
-                            // contained - program type 1
-                            !string.IsNullOrWhiteSpace(patientId) &&
-                            !string.IsNullOrWhiteSpace(stayStartDate) &&
-                            !string.IsNullOrWhiteSpace(stayEndDate)
-                                ? new XElement(ns + "contained",
-                                    new XElement(ns + "Encounter",
-                                        new XElement(ns + "id",
-                                            new XAttribute("value", "programType1")
-                                        ),
-                                        new XElement(ns + "meta",
-                                            new XElement(ns + "profile",
-                                                new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-encounter")
-                                            )
-                                        ),
-                                        new XElement(ns + "status",
-                                            new XElement(ns + "profile",
-                                                new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-encounter")
-                                            )
-                                        ),
-                                        new XElement(ns + "type",
-                                            new XElement(ns + "coding",
-                                                new XElement(ns + "code",
-                                                    new XAttribute("value", "PRT123") // TODO - hardcoded?
-                                                )
-                                            )
-                                        ),
-                                        new XElement(ns + "subject",
-                                            new XElement(ns + "reference",
-                                                new XAttribute("value", $"Patient/{patientId}")
-                                            )
-                                        ),
-                                        new XElement(ns + "period",
-                                            new XElement(ns + "start",
-                                                new XAttribute("value", stayStartDate)
-                                            ),
-                                            new XElement(ns + "end",
-                                                new XAttribute("value", stayEndDate)
-                                            )
-                                        ),
-                                        new XElement(ns + "serviceProvider",
-                                            new XElement(ns + "identifier",
-                                                new XElement(ns + "system",
-                                                    new XAttribute("value", "http://cihi.ca/fhir/NamingSystem/on-ministry-of-health-and-long-term-care-submission-identifier")
-                                                ),
-                                                new XElement(ns + "value",
-                                                    new XAttribute("value", orgId)
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                                : null,
+                            //// contained - program type 1
+                            //!string.IsNullOrWhiteSpace(patientId) &&
+                            //!string.IsNullOrWhiteSpace(stayStartDate) &&
+                            //!string.IsNullOrWhiteSpace(stayEndDate)
+                            //    ? new XElement(ns + "contained",
+                            //        new XElement(ns + "Encounter",
+                            //            new XElement(ns + "id",
+                            //                new XAttribute("value", "programType1")
+                            //            ),
+                            //            new XElement(ns + "meta",
+                            //                new XElement(ns + "profile",
+                            //                    new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-encounter")
+                            //                )
+                            //            ),
+                            //            new XElement(ns + "status",
+                            //                new XElement(ns + "profile",
+                            //                    new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-encounter")
+                            //                )
+                            //            ),
+                            //            new XElement(ns + "type",
+                            //                new XElement(ns + "coding",
+                            //                    new XElement(ns + "code",
+                            //                        new XAttribute("value", "PRT123") 
+                            //                    )
+                            //                )
+                            //            ),
+                            //            new XElement(ns + "subject",
+                            //                new XElement(ns + "reference",
+                            //                    new XAttribute("value", $"Patient/{patientId}")
+                            //                )
+                            //            ),
+                            //            new XElement(ns + "period",
+                            //                new XElement(ns + "start",
+                            //                    new XAttribute("value", stayStartDate)
+                            //                ),
+                            //                new XElement(ns + "end",
+                            //                    new XAttribute("value", stayEndDate)
+                            //                )
+                            //            ),
+                            //            new XElement(ns + "serviceProvider",
+                            //                new XElement(ns + "identifier",
+                            //                    new XElement(ns + "system",
+                            //                        new XAttribute("value", "http://cihi.ca/fhir/NamingSystem/on-ministry-of-health-and-long-term-care-submission-identifier")
+                            //                    ),
+                            //                    new XElement(ns + "value",
+                            //                        new XAttribute("value", orgId)
+                            //                    )
+                            //                )
+                            //            )
+                            //        )
+                            //    )
+                            //    : null,
 
                             // contained - ?
-                            !string.IsNullOrWhiteSpace(admittedFrom)//TODO - hardcoded? (admittedFrom = Program Type 1?)
-                                ? new XElement(ns + "contained",
-                                    new XElement(ns + "Location",
-                                        new XElement(ns + "id",
-                                            new XAttribute("value", "misCode")
-                                        ),
-                                        new XElement(ns + "meta",
-                                            new XElement(ns + "profile",
-                                                new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-mis-code")
-                                            )
-                                        ),
-                                        new XElement(ns + "type",
-                                            new XElement(ns + "coding",
-                                                new XElement(ns + "code",
-                                                    new XAttribute("value", admittedFromFacilityNumber) 
-                                                )
-                                            )
-                                        ),
-                                            new XElement(ns + "physicalType",
-                                            new XElement(ns + "coding",
-                                                new XElement(ns + "code",
-                                                    new XAttribute("value", "wa")//TODO - hard coded?
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                                : null,
+                            //!string.IsNullOrWhiteSpace(admittedFrom)
+                            //    ? new XElement(ns + "contained",
+                            //        new XElement(ns + "Location",
+                            //            new XElement(ns + "id",
+                            //                new XAttribute("value", "misCode")
+                            //            ),
+                            //            new XElement(ns + "meta",
+                            //                new XElement(ns + "profile",
+                            //                    new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-mis-code")
+                            //                )
+                            //            ),
+                            //            new XElement(ns + "type",
+                            //                new XElement(ns + "coding",
+                            //                    new XElement(ns + "code",
+                            //                        new XAttribute("value", admittedFromFacilityNumber) 
+                            //                    )
+                            //                )
+                            //            ),
+                            //                new XElement(ns + "physicalType",
+                            //                new XElement(ns + "coding",
+                            //                    new XElement(ns + "code",
+                            //                        new XAttribute("value", "wa")
+                            //                    )
+                            //                )
+                            //            )
+                            //        )
+                            //    )
+                            //    : null,
 
-                            // contained - Bed Type
-                            !string.IsNullOrWhiteSpace(admittedFrom)//TODO - hardcoded? (admittedFrom = Program Type 1?)
-                                ? new XElement(ns + "contained",
-                                    new XElement(ns + "Location",
-                                        new XElement(ns + "id",
-                                            new XAttribute("value", "bedType")
-                                        ),
-                                        new XElement(ns + "meta",
-                                            new XElement(ns + "profile",
-                                                new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-bed-type")
-                                            )
-                                        ),
-                                        new XElement(ns + "type",
-                                            new XElement(ns + "coding",
-                                                new XElement(ns + "code",
-                                                    new XAttribute("value", "CCCF")//TODO- hardcoded? (CCCF = Complex Continuing Care Facility
-                                                )
-                                            )
-                                        ),
-                                            new XElement(ns + "physicalType",
-                                            new XElement(ns + "coding",
-                                                new XElement(ns + "code",
-                                                    new XAttribute("value", "bd")//TODO - hard coded? (bd = Bed Type)
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                                : null,
+                            //// contained - Bed Type
+                            //!string.IsNullOrWhiteSpace(admittedFrom)//TODO - hardcoded? (admittedFrom = Program Type 1?)
+                            //    ? new XElement(ns + "contained",
+                            //        new XElement(ns + "Location",
+                            //            new XElement(ns + "id",
+                            //                new XAttribute("value", "bedType")
+                            //            ),
+                            //            new XElement(ns + "meta",
+                            //                new XElement(ns + "profile",
+                            //                    new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-bed-type")
+                            //                )
+                            //            ),
+                            //            new XElement(ns + "type",
+                            //                new XElement(ns + "coding",
+                            //                    new XElement(ns + "code",
+                            //                        new XAttribute("value", "CCCF")//TODO- hardcoded? (CCCF = Complex Continuing Care Facility
+                            //                    )
+                            //                )
+                            //            ),
+                            //                new XElement(ns + "physicalType",
+                            //                new XElement(ns + "coding",
+                            //                    new XElement(ns + "code",
+                            //                        new XAttribute("value", "bd")//TODO - hard coded? (bd = Bed Type)
+                            //                    )
+                            //                )
+                            //            )
+                            //        )
+                            //    )
+                            //    : null,
 
                             // contained - Payment Source
-                            !string.IsNullOrWhiteSpace(admittedFrom)//TODO - hardcoded? (admittedFrom = Program Type 1?)
-                                ? new XElement(ns + "contained",
+                           
+                                new XElement(ns + "contained",
                                     new XElement(ns + "Account",
                                         new XElement(ns + "id",
                                             new XAttribute("value", "paymentSource")
@@ -241,7 +243,7 @@ namespace IFIC.FileIngestor.Transformers
                                         new XElement(ns + "type",
                                             new XElement(ns + "coding",
                                                 new XElement(ns + "code",
-                                                    new XAttribute("value", "PBILLACCT")// TODO - hard coded? (PBILLACCT = Provincial Billing Account)
+                                                    new XAttribute("value", "PBILLACCT")
                                                 )
                                             )
                                         ),
@@ -252,7 +254,7 @@ namespace IFIC.FileIngestor.Transformers
                                                 )
                                             )
                                         ),
-                                            new XElement(ns + "coverage",
+                                        new XElement(ns + "coverage",
                                             new XElement(ns + "coverage",
                                                 new XElement(ns + "reference",
                                                     new XAttribute("value", "#coverage-iA7f")// TODO - hard coded? (coverage-iA7f = Insurance Account 7f?)
@@ -260,12 +262,11 @@ namespace IFIC.FileIngestor.Transformers
                                             )
                                         )
                                     )
-                                )
-                                : null,
+                                ),
 
                             // contained - coverage-iA7a
-                            !string.IsNullOrWhiteSpace(admittedFrom)//TODO - hardcoded? (admittedFrom = Program Type 1?)
-                                ? new XElement(ns + "contained",
+                            
+                                new XElement(ns + "contained",
                                     new XElement(ns + "Coverage",
                                         new XElement(ns + "id",
                                             new XAttribute("value", "coverage-iA7a")
@@ -284,16 +285,15 @@ namespace IFIC.FileIngestor.Transformers
                                         ),
                                         new XElement(ns + "period",
                                             new XElement(ns + "start",
-                                                new XAttribute("value", "2017-01-01")// TODO - hard coded? (start date for coverage?)
+                                                new XAttribute("value", "2017-01-01")//Will be B2 or A12 depending on assessment type in admin.The only time it is A12 if the axType contains the word return.
                                             )
                                         )
                                     )
-                                )
-                                : null,
+                                ),
 
                             // contained - coverage-iA7f
-                            !string.IsNullOrWhiteSpace(admittedFrom)//TODO - hardcoded? (admittedFrom = Program Type 1?)
-                                ? new XElement(ns + "contained",
+                            
+                                new XElement(ns + "contained",
                                     new XElement(ns + "Coverage",
                                         new XElement(ns + "id",
                                             new XAttribute("value", "coverage-iA7f")
@@ -316,25 +316,23 @@ namespace IFIC.FileIngestor.Transformers
                                             )
                                         )
                                     )
-                                )
-                                : null,
+                                ),
 
-                            // contained - Reference to the contained program type
-                            !string.IsNullOrWhiteSpace(admittedFrom)//TODO - hardcoded? (admittedFrom = Program Type 1?)
-                                ? new XElement(ns + "extension",
-                                    new XAttribute("url", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-includes"),
-                                    new XElement(ns + "valueReference",
-                                        new XElement(ns + "reference",
-                                            new XAttribute("value", "#programType1")//TODO - hard coded? (programType1 = Program Type 1?
-                                        )
-                                    )
-                                )
-                                : null,
+                            //// contained - Reference to the contained program type
+                           
+                            //new XElement(ns + "extension",
+                            //    new XAttribute("url", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-includes"),
+                            //    new XElement(ns + "valueReference",
+                            //        new XElement(ns + "reference",
+                            //            new XAttribute("value", "#programType1")
+                            //        )
+                            //    )
+                            //),
 
-                            //planned
-                            new XElement(ns + "status",
-                                new XAttribute("value", "planned")
-                            ),
+                            ////planned
+                            //new XElement(ns + "status",
+                            //    new XAttribute("value", "planned")
+                            //),
                             // contained - Patient ID
                             !string.IsNullOrWhiteSpace(patientId)
                                 ? new XElement(ns + "subject",
@@ -348,7 +346,7 @@ namespace IFIC.FileIngestor.Transformers
                             !string.IsNullOrWhiteSpace(stayStartDate) || !string.IsNullOrWhiteSpace(stayEndDate)
                                 ? new XElement(ns + "period",
                                     new XElement(ns + "start",
-                                        new XAttribute("value", stayStartDate)
+                                        new XAttribute("value", stayStartDate)// Again conditional with A12 see comment above based on axType
                                     ),
                                     new XElement(ns + "end",
                                         new XAttribute("value", stayEndDate)
@@ -356,70 +354,68 @@ namespace IFIC.FileIngestor.Transformers
                                 )
                                 : null,
 
-                            !string.IsNullOrWhiteSpace(stayStartDate)//TODO - hardcoded? (stayStartDate = Start Date of Stay?)
-                                ? new XElement(ns + "Account",
-                                    new XElement(ns + "id",
-                                        new XAttribute("value", "#paymentSource")
-                                    )
-                                )
-                                : null,
+                            //new XElement(ns + "Account",
+                            //    new XElement(ns + "id",
+                            //        new XAttribute("value", "#paymentSource")
+                            //    )
+                            //),
 
-                                //Hospitalization
-                                !string.IsNullOrWhiteSpace(admittedFrom)
-                                ? new XElement(ns + "hospitalization",
-                                    new XElement(ns + "origin",
-                                        new XElement(ns + "reference",
-                                            new XAttribute("value", "#admittedFrom")
-                                        )
-                                    ),
-                                    new XElement(ns + "reAdmission",
-                                        new XElement(ns + "coding",
-                                            new XAttribute("code", 1)//TODO - hard coded? (1 = Yes, 2 = No, 3 = Unknown?)
-                                        )
-                                    ),
-                                    new XElement(ns + "destination",
-                                            new XAttribute("value", "#dischargedTo")
-                                    )
-                                )
-                                : null,
+                            ////Hospitalization
+                            //!string.IsNullOrWhiteSpace(admittedFrom)
+                            //? new XElement(ns + "hospitalization",
+                            //    new XElement(ns + "origin",
+                            //        new XElement(ns + "reference",
+                            //            new XAttribute("value", "#admittedFrom")
+                            //        )
+                            //    ),
+                            //    new XElement(ns + "reAdmission",
+                            //        new XElement(ns + "coding",
+                            //            new XAttribute("code", 1)//TODO - hard coded? (1 = Yes, 2 = No, 3 = Unknown?)
+                            //        )
+                            //    ),
+                            //    new XElement(ns + "destination",
+                            //            new XAttribute("value", "#dischargedTo")
+                            //    )
+                            //)
+                            //: null,
 
-                                //MIS Function Centre
-                                !string.IsNullOrWhiteSpace(stayStartDate) && !string.IsNullOrWhiteSpace(stayEndDate)
-                                ? new XElement(ns + "location",
-                                    new XElement(ns + "location",
-                                        new XElement(ns + "reference",
-                                            new XAttribute("value", "#misCode")
-                                        )
-                                    ),
-                                    new XElement(ns + "period",
-                                        new XElement(ns + "start",
-                                            new XAttribute("value", stayStartDate)
-                                        ),
-                                        new XElement(ns + "end",
-                                            new XAttribute("value", stayEndDate)
-                                        )
-                                    )
-                                )
-                                : null,
+                            ////MIS Function Centre
+                            //!string.IsNullOrWhiteSpace(stayStartDate) && !string.IsNullOrWhiteSpace(stayEndDate)
+                            //? new XElement(ns + "location",
+                            //    new XElement(ns + "location",
+                            //        new XElement(ns + "reference",
+                            //            new XAttribute("value", "#misCode")
+                            //        )
+                            //    ),
+                            //    new XElement(ns + "period",
+                            //        new XElement(ns + "start",
+                            //            new XAttribute("value", stayStartDate)
+                            //        ),
+                            //        new XElement(ns + "end",
+                            //            new XAttribute("value", stayEndDate)
+                            //        )
+                            //    )
+                            //)
+                            //: null,
 
-                                //Bed Type
-                                !string.IsNullOrWhiteSpace(stayStartDate) && !string.IsNullOrWhiteSpace(stayEndDate)
-                                ? new XElement(ns + "location",
-                                    new XElement(ns + "location",
-                                        new XElement(ns + "reference",
-                                            new XAttribute("value", "#bedType")
-                                        )
-                                    ),
-                                    new XElement(ns + "period",
-                                        new XElement(ns + "start",
-                                            new XAttribute("value", stayStartDate)
-                                        ),
-                                        new XElement(ns + "end",
-                                            new XAttribute("value", stayEndDate)
-                                        )
-                                    )
-                                )
-                                : null,
+                            ////Bed Type
+                            //!string.IsNullOrWhiteSpace(stayStartDate) && !string.IsNullOrWhiteSpace(stayEndDate)
+                            //? new XElement(ns + "location",
+                            //    new XElement(ns + "location",
+                            //        new XElement(ns + "reference",
+                            //            new XAttribute("value", "#bedType")
+                            //        )
+                            //    ),
+                            //    new XElement(ns + "period",
+                            //        new XElement(ns + "start",
+                            //            new XAttribute("value", stayStartDate)
+                            //        ),
+                            //        new XElement(ns + "end",
+                            //            new XAttribute("value", stayEndDate)
+                            //        )
+                            //    )
+                            //)
+                            //: null,
 
                             // Faciltiy/agnecy identifier this encounter is related to
                             new XElement(ns + "serviceProvider",
