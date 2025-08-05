@@ -97,18 +97,22 @@ namespace IFIC.Runner
                     //var patientBuilder = new PatientXmlBuilder();
                     //var patientDoc = patientBuilder.BuildPatientBundle(parsedFile);
 
-                    // Build FHIR Encounter Bundle
-                    var encounterBuilder = new EncounterXmlBuilder();
-                    var encounterDoc = encounterBuilder.BuildEncounterBundle(parsedFile);
+                    //// Build FHIR Encounter Bundle
+                    //var encounterBuilder = new EncounterXmlBuilder();
+                    //var encounterDoc = encounterBuilder.BuildEncounterBundle(parsedFile);
+
+                    // Build FHIR QuestionnaireResponse Bundle
+                    var QuestionnaireResponseBuilder = new QuestionnaireResponseBuilder();
+                    var QuestionnaireResponseDoc = QuestionnaireResponseBuilder.BuildQuestionnaireResponsBundle(parsedFile);
 
                     // Save XML locally
                     string outputPath = Path.Combine(outputFolder, $"fhir_patient_bundle_{timestamp}.xml");
-                    await File.WriteAllTextAsync(outputPath, encounterDoc.ToString());
+                    await File.WriteAllTextAsync(outputPath, QuestionnaireResponseDoc.ToString());
                     logger.LogInformation("FHIR Bundle saved to: {OutputPath}", outputPath);
                     File.AppendAllText(logFile, $"FHIR Bundle saved: {outputPath}{Environment.NewLine}");
 
                     // Submit to CIHI
-                    string xmlContentForSubmit = encounterDoc.ToString();
+                    string xmlContentForSubmit = QuestionnaireResponseDoc.ToString();
                     logger.LogInformation("Submitting bundle to CIHI...");
                     File.AppendAllText(logFile, $"Submitting bundle at: {DateTime.Now}{Environment.NewLine}");
                     await apiClient.SubmitXmlAsync(xmlContentForSubmit);

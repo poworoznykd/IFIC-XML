@@ -21,7 +21,7 @@ namespace IFIC.FileIngestor.Transformers
         /// </summary>
         /// <param name="parsedFile">The parsed flat file containing patient data.</param>
         /// <returns>XDocument representing the FHIR Bundle XML.</returns>
-        public XDocument BuildPatientBundle(ParsedFlatFile parsedFile)
+        public XDocument BuildQuestionnaireResponsBundle(ParsedFlatFile parsedFile)
         {
             if (parsedFile == null)
             {
@@ -441,7 +441,7 @@ namespace IFIC.FileIngestor.Transformers
                                 )
                             ),
                              //< !--Encounter ID-- >
-                             new XElement(ns + "subject",
+                             new XElement(ns + "context",
                                 new XElement(ns + "reference",
                                     new XAttribute("value", $"Encounter/{encounterId}")
                                 )
@@ -1389,9 +1389,7 @@ namespace IFIC.FileIngestor.Transformers
                                 ? new XElement(ns + "item",
                                     new XElement(ns + "linkId", new XAttribute("value", "G2b")),
                                     new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding",
-                                            new XElement(ns + "code", new XAttribute("value", timedWalk))
-                                        )
+                                        new XElement(ns + "valueInteger", new XAttribute("value", timedWalk))
                                     )
                                 ) : null,
 
@@ -2094,23 +2092,18 @@ namespace IFIC.FileIngestor.Transformers
                             // Section K
                             new XElement(ns + "item",
                                 new XElement(ns + "linkId", new XAttribute("value", "K")),
-
                                 new XElement(ns + "item",
                                     new XElement(ns + "linkId", new XAttribute("value", "K1")),
                                     new XElement(ns + "item",
                                         new XElement(ns + "linkId", new XAttribute("value", "K1a")),
                                         new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", heightCentimetres))
-                                            )
+                                            new XElement(ns + "valueInteger", new XAttribute("value", heightCentimetres))
                                         )
                                     ),
                                     new XElement(ns + "item",
                                         new XElement(ns + "linkId", new XAttribute("value", "K1b")),
                                         new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", weightKilograms))
-                                            )
+                                            new XElement(ns + "valueDecimal", new XAttribute("value", weightKilograms))
                                         )
                                     )
                                 ),
@@ -2233,64 +2226,62 @@ namespace IFIC.FileIngestor.Transformers
                                     )
                                 )
                             ),
-                             // Section K END
-                             // Section L
-                             new XElement(ns + "item",
+                            // Section L
+                            new XElement(ns + "item",
                                 new XElement(ns + "linkId", new XAttribute("value", "L")),
-                                    new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "L1")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", mostSeverePressureUlcer))
-                                            )
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "L1")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", mostSeverePressureUlcer))
                                         )
-                                    ),
-                                    new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "L2")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", priorPressureUlcer))
-                                            )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "L2")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", priorPressureUlcer))
                                         )
-                                    ),
-                                    new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "L3")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", otherSkinUlcer))
-                                            )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "L3")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", otherSkinUlcer))
                                         )
-                                    ),
-                                    new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "L4")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", majorSkinProblems))
-                                            )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "L4")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", majorSkinProblems))
                                         )
-                                    ),
-                                    new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "L5")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", skinTearsOrCuts))
-                                            )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "L5")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", skinTearsOrCuts))
                                         )
-                                    ),
-                                    new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "L6")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", otherSkinCondition))
-                                            )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "L6")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", otherSkinCondition))
                                         )
-                                    ),
-                                    new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "L7")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", footProblems))
-                                            )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "L7")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", footProblems))
                                         )
                                     )
                                 )
@@ -2298,136 +2289,134 @@ namespace IFIC.FileIngestor.Transformers
                             // Section M
                             new XElement(ns + "item",
                                 new XElement(ns + "linkId", new XAttribute("value", "M")),
-                                    new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "M1")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", timeInvolvedInActivities))
-                                            )
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "M1")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", timeInvolvedInActivities))
                                         )
-                                    ),
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "M2")),
                                     new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "M2")),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2a")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", priorPressureUlcer))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2b")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", computerActivity))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2c")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", conversingTalkingOnPhone))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2d")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", craftsOrArts))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2e")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", dancing))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2f")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", reminiscingAboutLife))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2g")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", exerciseOrSports))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2h")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", gardeningOrPlants))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2i")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", helpingOthers))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2j")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", musicOrSinging))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2k")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", pets))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2l")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", reading))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2m")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", spiritualActivities))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2n")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", tripsOrShopping))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2o")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", walkingOrWheelingOutdoors))
-                                                )
-                                            ),
-                                            new XElement(ns + "item",
-                                                new XElement(ns + "linkId", new XAttribute("value", "M2p")),
-                                                new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", watchingTvOrListeningToRadio))
-                                                )
-                                            )
-                                        )
-                                    ),
-                                   new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "M3")),
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2a")),
                                         new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", timeAsleepDuringDay))
-                                            )
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", priorPressureUlcer))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2b")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", computerActivity))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2c")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", conversingTalkingOnPhone))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2d")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", craftsOrArts))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2e")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", dancing))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2f")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", reminiscingAboutLife))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2g")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", exerciseOrSports))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2h")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", gardeningOrPlants))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2i")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", helpingOthers))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2j")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", musicOrSinging))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2k")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", pets))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2l")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", reading))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2m")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", spiritualActivities))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2n")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", tripsOrShopping))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2o")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", walkingOrWheelingOutdoors))
+                                        )
+                                    )),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "M2p")),
+                                        new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", watchingTvOrListeningToRadio))
+                                        )
+                                    ))
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "M3")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", timeAsleepDuringDay))
                                         )
                                     )
                                 )
@@ -2435,96 +2424,98 @@ namespace IFIC.FileIngestor.Transformers
                             // Section N
                             new XElement(ns + "item",
                                 new XElement(ns + "linkId", new XAttribute("value", "N")),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "N2")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", drugAllergy))
+                                        )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "N3")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueInteger", new XAttribute("value", numberOfMedications))
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "N4")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueInteger", new XAttribute("value", numberOfHerbalNutritionalSupplements))
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "N5")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", recentlyChangedMedications))
+                                        )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "N6")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", selfReportNeedForMedicationReview))
+                                        )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "N7")),
                                     new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "N2")),
+                                        new XElement(ns + "linkId", new XAttribute("value", "N7a")),
                                         new XElement(ns + "answer",
                                             new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", drugAllergy))
+                                                new XElement(ns + "code", new XAttribute("value", antipsychoticLast7Days))
                                             )
                                         )
                                     ),
                                     new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "N3")),
+                                        new XElement(ns + "linkId", new XAttribute("value", "N7b")),
                                         new XElement(ns + "answer",
                                             new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", numberOfMedications))
+                                                new XElement(ns + "code", new XAttribute("value", anxiolyticLast7Days))
                                             )
                                         )
                                     ),
                                     new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "N4")),
+                                        new XElement(ns + "linkId", new XAttribute("value", "N7c")),
                                         new XElement(ns + "answer",
                                             new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", numberOfHerbalNutritionalSupplements))
+                                                new XElement(ns + "code", new XAttribute("value", antidepressantLast7Days))
                                             )
                                         )
                                     ),
                                     new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "N5")),
+                                        new XElement(ns + "linkId", new XAttribute("value", "N7d")),
                                         new XElement(ns + "answer",
                                             new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", recentlyChangedMedications))
+                                                new XElement(ns + "code", new XAttribute("value", hypnoticLast7Days))
                                             )
                                         )
-                                    ),
-                                    new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "N6")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", selfReportNeedForMedicationReview))
-                                            )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "N8")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", medicationByDailyInjection))
                                         )
-                                    ),
-                                    new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "N7")),
-                                            new XElement(ns + "linkId", new XAttribute("value", "N7a")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", antipsychoticLast7Days))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "N7b")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", anxiolyticLast7Days))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "N7c")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", antidepressantLast7Days))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "N7d")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", hypnoticLast7Days))
-                                                )
-                                            )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "N9")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", cannabisUseTimeSinceUse))
                                         )
-                                    ),
-                                    new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "N8")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", medicationByDailyInjection))
-                                            )
-                                        )
-                                    ),
-                                    new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "N9")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", cannabisUseTimeSinceUse))
-                                            )
-                                        )
-                                    ),
-                                    new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "N10")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", medicinalUseOfCannabis))
-                                            )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "N10")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", medicinalUseOfCannabis))
                                         )
                                     )
                                 )
@@ -2532,325 +2523,367 @@ namespace IFIC.FileIngestor.Transformers
                             // Section O
                             new XElement(ns + "item",
                                 new XElement(ns + "linkId", new XAttribute("value", "O")),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "O1")),
                                     new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "O1")),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O1a")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", bloodPressure))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O1b")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", colonoscopy))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O1c")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", dentalExam))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O1d")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", eyeExam))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O1e")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", hearingExam))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O1f")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", influenzaVaccine))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O1g")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", mammogramOrBreastExam))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O1h")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", pneumovaxVaccine))
-                                                )
+                                        new XElement(ns + "linkId", new XAttribute("value", "O1a")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", bloodPressure))
                                             )
                                         )
                                     ),
                                     new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "O2")),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O2a")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", chemotherapy))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O2b")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", dialysis))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O2c")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", infectionControlSegregation))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O2d")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", ivMedication))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O2e")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", oxygenTherapy))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O2f")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", radiation))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O2g")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", suctioning))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O2h")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", tracheostomyCare))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O2i")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", transfusion))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O2j")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", ventilator))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O2k")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", woundCare))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O2l")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", scheduledToiletingProgram))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O2m")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", palliativeCare))
-                                                )
-                                            ),
-                                             new XElement(ns + "linkId", new XAttribute("value", "O2n")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", turningProgram))
-                                                )
+                                        new XElement(ns + "linkId", new XAttribute("value", "O1b")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", colonoscopy))
                                             )
                                         )
                                     ),
                                     new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "O3")),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3ab")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", physicalTherapyDays))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3ac")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", physicalTherapyMinutes))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3aa")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", physicalTherapyScheduled))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3bb")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", occupationalTherapyDays))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3bc")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", occupationalTherapyMinutes))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3ba")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", occupationalTherapyScheduled))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3cb")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", speechLanguageTherapyDays))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3cc")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", speechLanguageTherapyMinutes))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3ca")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", speechLanguageTherapyScheduled))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3db")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", respiratoryTherapyDays))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3dc")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", respiratoryTherapyMinutes))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3da")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", respiratoryTherapyScheduled))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3eb")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", functionalRehabilitationDays))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3ec")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", functionalRehabilitationMinutes))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3ea")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", functionalRehabilitationScheduled))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3fb")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", psychologicalTherapiesDays))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3fc")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", psychologicalTherapiesMinutes))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3fa")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", psychologicalTherapiesScheduled))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3gb")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", recreationTherapyDays))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3gc")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", recreationTherapyMinutes))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O3ga")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", recreationTherapyScheduled))
-                                                )
+                                        new XElement(ns + "linkId", new XAttribute("value", "O1c")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", dentalExam))
                                             )
                                         )
                                     ),
                                     new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "O4")),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O4a")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", inpatientAcuteCareHospitalWithOvernightStay))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O4b")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", emergencyRoomVisit))
-                                                )
+                                        new XElement(ns + "linkId", new XAttribute("value", "O1d")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", eyeExam))
                                             )
                                         )
                                     ),
                                     new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "O5")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueInteger", new XAttribute("value", numberOfDaysPhysicianVisits))
+                                        new XElement(ns + "linkId", new XAttribute("value", "O1e")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", hearingExam))
                                             )
                                         )
                                     ),
                                     new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "O6")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueInteger", new XAttribute("value", numberOfDaysPhysicianOrders))
+                                        new XElement(ns + "linkId", new XAttribute("value", "O1f")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", influenzaVaccine))
                                             )
                                         )
                                     ),
                                     new XElement(ns + "item",
-                                        new XElement(ns + "linkId", new XAttribute("value", "O7")),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O7a")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", fullBedRails))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O7b")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", trunkRestraint))
-                                                )
-                                            ),
-                                            new XElement(ns + "linkId", new XAttribute("value", "O7c")),
-                                            new XElement(ns + "answer",
-                                                new XElement(ns + "valueCoding",
-                                                    new XElement(ns + "code", new XAttribute("value", chairPreventsRising))
-                                                )
+                                        new XElement(ns + "linkId", new XAttribute("value", "O1g")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", mammogramOrBreastExam))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O1h")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", pneumovaxVaccine))
+                                            )
+                                        )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                new XElement(ns + "linkId", new XAttribute("value", "O2")),
+                                    new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "O2a")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", chemotherapy))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O2b")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", dialysis))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O2c")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", infectionControlSegregation))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O2d")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", ivMedication))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                            new XElement(ns + "linkId", new XAttribute("value", "O2e")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", oxygenTherapy))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                            new XElement(ns + "linkId", new XAttribute("value", "O2f")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", radiation))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                            new XElement(ns + "linkId", new XAttribute("value", "O2g")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", suctioning))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                            new XElement(ns + "linkId", new XAttribute("value", "O2h")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", tracheostomyCare))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                            new XElement(ns + "linkId", new XAttribute("value", "O2i")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", transfusion))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                            new XElement(ns + "linkId", new XAttribute("value", "O2j")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", ventilator))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                            new XElement(ns + "linkId", new XAttribute("value", "O2k")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", woundCare))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                            new XElement(ns + "linkId", new XAttribute("value", "O2l")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", scheduledToiletingProgram))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                            new XElement(ns + "linkId", new XAttribute("value", "O2m")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", palliativeCare))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                            new XElement(ns + "linkId", new XAttribute("value", "O2n")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", turningProgram))
+                                            )
+                                        )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                new XElement(ns + "linkId", new XAttribute("value", "O3")),
+                                    new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "O3ab")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", physicalTherapyDays))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3ac")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", physicalTherapyMinutes))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3aa")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", physicalTherapyScheduled))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3bb")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", occupationalTherapyDays))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3bc")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", occupationalTherapyMinutes))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3ba")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", occupationalTherapyScheduled))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3cb")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", speechLanguageTherapyDays))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3cc")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", speechLanguageTherapyMinutes))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3ca")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", speechLanguageTherapyScheduled))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3db")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", respiratoryTherapyDays))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3dc")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", respiratoryTherapyMinutes))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3da")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", respiratoryTherapyScheduled))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3eb")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", functionalRehabilitationDays))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3ec")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", functionalRehabilitationMinutes))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3ea")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", functionalRehabilitationScheduled))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3fb")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", psychologicalTherapiesDays))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3fc")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", psychologicalTherapiesMinutes))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3fa")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", psychologicalTherapiesScheduled))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3gb")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", recreationTherapyDays))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3gc")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", recreationTherapyMinutes))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O3ga")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", recreationTherapyScheduled))
+                                        )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                new XElement(ns + "linkId", new XAttribute("value", "O4")),
+                                    new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "O4a")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", inpatientAcuteCareHospitalWithOvernightStay))
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "O4b")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueInteger", new XAttribute("value", emergencyRoomVisit))
+                                        )
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                new XElement(ns + "linkId", new XAttribute("value", "O5")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueInteger", new XAttribute("value", numberOfDaysPhysicianVisits))
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                new XElement(ns + "linkId", new XAttribute("value", "O6")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueInteger", new XAttribute("value", numberOfDaysPhysicianOrders))
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                    new XElement(ns + "linkId", new XAttribute("value", "O7")),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O7a")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", fullBedRails))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O7b")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", trunkRestraint))
+                                            )
+                                        )
+                                    ),
+                                    new XElement(ns + "item",
+                                        new XElement(ns + "linkId", new XAttribute("value", "O7c")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", new XAttribute("value", chairPreventsRising))
                                             )
                                         )
                                     )
@@ -2902,9 +2935,7 @@ namespace IFIC.FileIngestor.Transformers
                             ),
                             // Section Q
                             new XElement(ns + "item",
-                                new XElement(ns + "linkId",
-                                    new XAttribute("value", $"Q")
-                                ),
+                                new XElement(ns + "linkId", new XAttribute("value", $"Q")),
                                 new XElement(ns + "item",
                                     new XElement(ns + "linkId", new XAttribute("value", $"Q1")),
                                     new XElement(ns + "item",
@@ -2932,64 +2963,58 @@ namespace IFIC.FileIngestor.Transformers
                                         )
                                     )
                                 ),
-                                 new XElement(ns + "item",
-                                    new XElement(ns + "linkId", new XAttribute("value", $"Q2")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", expectedLengthOfStay))
-                                            )
+                                new XElement(ns + "item",
+                                new XElement(ns + "linkId", new XAttribute("value", $"Q2")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", expectedLengthOfStay))
                                         )
                                     )
                                 )
                             ),
                             // Section R
                             new XElement(ns + "item",
-                                 new XElement(ns + "linkId", new XAttribute("value", $"R")),
-                                 new XElement(ns + "item",
+                                new XElement(ns + "linkId", new XAttribute("value", $"R")),
+                                new XElement(ns + "item",
                                     new XElement(ns + "linkId", new XAttribute("value", $"R1")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", lastDayOfStay))
-                                            )
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", lastDayOfStay))
                                         )
                                     )
-                                 ),
-                                 new XElement(ns + "item",
+                                ),
+                                new XElement(ns + "item",
                                     new XElement(ns + "linkId", new XAttribute("value", $"R2")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", residentialLivingStatusAfterDischarge))
-                                            )
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", residentialLivingStatusAfterDischarge))
                                         )
                                     )
-                                 ),
-                                 new XElement(ns + "item",
-                                    new XElement(ns + "linkId", new XAttribute("value", $"R3")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", dischargeToFacilityNumber))
-                                            )
+                                ),
+                                new XElement(ns + "item",
+                                new XElement(ns + "linkId", new XAttribute("value", $"R3")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", dischargeToFacilityNumber))
                                         )
                                     )
-                                 ),
-                                 new XElement(ns + "item",
-                                    new XElement(ns + "linkId", new XAttribute("value", $"R4")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", homeCareServicesScheduledAtDischarge))
-                                            )
+                                ),
+                                new XElement(ns + "item",
+                                new XElement(ns + "linkId", new XAttribute("value", $"R4")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", homeCareServicesScheduledAtDischarge))
                                         )
                                     )
-                                 ),
-                                 new XElement(ns + "item",
-                                    new XElement(ns + "linkId", new XAttribute("value", $"R5")),
-                                        new XElement(ns + "answer",
-                                            new XElement(ns + "valueCoding",
-                                                new XElement(ns + "code", new XAttribute("value", covid19Status))
-                                            )
+                                ),
+                                new XElement(ns + "item",
+                                new XElement(ns + "linkId", new XAttribute("value", $"R5")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", new XAttribute("value", covid19Status))
                                         )
                                     )
-                                 )
+                                )
                             ),
                             // Section S
                             new XElement(ns + "item",
@@ -3004,10 +3029,9 @@ namespace IFIC.FileIngestor.Transformers
                             )
                         )
                     ),
-                    new XElement(ns + "request",
-                        new XElement(ns + "method", new XAttribute("value", "POST")),
-                        new XElement(ns + "url", new XAttribute("value", "Patient"))
-                    )
+                new XElement(ns + "request",
+                    new XElement(ns + "method", new XAttribute("value", "POST")),
+                    new XElement(ns + "url", new XAttribute("value", "QuestionnaireResponse"))
                 )
             );
 
