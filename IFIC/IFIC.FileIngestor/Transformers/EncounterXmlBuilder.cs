@@ -11,6 +11,52 @@ namespace IFIC.FileIngestor.Transformers
     public class EncounterXmlBuilder
     {
         private static readonly XNamespace ns = "http://hl7.org/fhir";
+        public string StartDate { get; set; }
+        private List<XElement> CreateICodeA7Elements(ParsedFlatFile parsedFile)
+        {
+            var coverageCodes = new[] { "iA7a", "iA7b", "iA7c", "iA7d", "iA7e", "iA7f", "iA7g", "iA7h", "iA7i", "iA7j", "iA7k" };
+            var coverageContainedElements = new List<XElement>();
+
+            // Determine if assessment type contains "return"
+            string axType = parsedFile.Admin.TryGetValue("axType", out var axTypeValue) ? axTypeValue : string.Empty;
+            bool isReturnAssessment = axType.IndexOf("return", StringComparison.OrdinalIgnoreCase) >= 0;
+
+            // Choose appropriate field for start date
+            string dateFieldKey = isReturnAssessment ? "A12" : "B2";
+            StartDate = parsedFile.Encounter.TryGetValue(dateFieldKey, out var rawDate) && !string.IsNullOrWhiteSpace(rawDate)
+                ? rawDate
+                : "2017-01-01"; // fallback if B2 or A12 missing
+
+            foreach (var code in coverageCodes)
+            {
+                if (parsedFile.Encounter.TryGetValue(code, out var value) && !string.IsNullOrWhiteSpace(value))
+                {
+                    // Assign type code - customize as needed per code
+                    string typeCode = code == "iA7a" ? "INPUBLICPOL" : "pay";
+
+                    coverageContainedElements.Add(
+                        new XElement(ns + "contained",
+                            new XElement(ns + "Coverage",
+                                new XElement(ns + "id", new XAttribute("value", $"coverage-{code}")),
+                                new XElement(ns + "meta",
+                                    new XElement(ns + "profile", new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-coverage"))
+                                ),
+                                new XElement(ns + "type",
+                                    new XElement(ns + "coding",
+                                        new XElement(ns + "code", new XAttribute("value", typeCode))
+                                    )
+                                ),
+                                new XElement(ns + "period",
+                                    new XElement(ns + "start", new XAttribute("value", StartDate))
+                                )
+                            )
+                        )
+                    );
+                }
+            }
+
+            return coverageContainedElements;
+        }
 
         /// <summary>
         /// 
@@ -29,9 +75,9 @@ namespace IFIC.FileIngestor.Transformers
             string bundleId = Guid.NewGuid().ToString();
             string encounterId = Guid.NewGuid().ToString();
             string patientId = Guid.NewGuid().ToString();
-
+            var coverageCodes = new[] { "iA7a", "iA7b", "iA7c", "iA7d", "iA7e", "iA7f", "iA7g", "iA7h", "iA7i", "iA7j", "iA7k" };
             // Extract encounter values from flat file
-         
+
             parsedFile.Encounter.TryGetValue("B5A", out var admittedFrom);
             parsedFile.Encounter.TryGetValue("B2", out var stayStartDate);
             parsedFile.Encounter.TryGetValue("R1", out var stayEndDate);
@@ -59,62 +105,62 @@ namespace IFIC.FileIngestor.Transformers
 
                             // contained - admitted from
                             !string.IsNullOrWhiteSpace(admittedFrom)
-                                ? new XElement(ns + "contained",
-                                    new XElement(ns + "Location",
-                                        new XElement(ns + "id",
-                                            new XAttribute("value", "admittedFrom")
-                                        ),
-                                        new XElement(ns + "meta",
-                                            new XElement(ns + "profile",
-                                                new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-admission")
+                            ? new XElement(ns + "contained",
+                                new XElement(ns + "Location",
+                                    new XElement(ns + "id",
+                                        new XAttribute("value", "admittedFrom")
+                                    ),
+                                    new XElement(ns + "meta",
+                                        new XElement(ns + "profile",
+                                            new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-admission")
+                                        )
+                                    ),
+                                    new XElement(ns + "type",
+                                        new XElement(ns + "coding",
+                                            new XElement(ns + "code",
+                                                new XAttribute("value", admittedFrom)
                                             )
-                                        ),
-                                        new XElement(ns + "type",
-                                            new XElement(ns + "coding",
-                                                new XElement(ns + "code",
-                                                    new XAttribute("value", admittedFrom)
-                                                )
-                                            )
-                                        ),
-                                        !string.IsNullOrWhiteSpace(admittedFromFacilityNumber)
-                                        ? new XElement(ns + "managingOrganization",
-                                            new XElement(ns + "identifier",
-                                                new XElement(ns + "value", new XAttribute("value", admittedFromFacilityNumber))
-                                            )
-                                        ) : null
-                                    )
+                                        )
+                                    ),
+                                    !string.IsNullOrWhiteSpace(admittedFromFacilityNumber)
+                                    ? new XElement(ns + "managingOrganization",
+                                        new XElement(ns + "identifier",
+                                            new XElement(ns + "value", new XAttribute("value", admittedFromFacilityNumber))
+                                        )
+                                    ) : null
                                 )
-                                : null,
+                            )
+                            : null,
 
-                            // contained - discharged to
-                            !string.IsNullOrWhiteSpace(orgId)
-                                ? new XElement(ns + "contained",
-                                    new XElement(ns + "Location",
-                                        new XElement(ns + "id",
-                                            new XAttribute("value", "dischargedTo")
-                                        ),
-                                        new XElement(ns + "meta",
-                                            new XElement(ns + "profile",
-                                                new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-discharge")
+                        // contained - discharged to
+                        !string.IsNullOrWhiteSpace(orgId)
+                            ? new XElement(ns + "contained",
+                                new XElement(ns + "Location",
+                                    new XElement(ns + "id",
+                                        new XAttribute("value", "dischargedTo")
+                                    ),
+                                    new XElement(ns + "meta",
+                                        new XElement(ns + "profile",
+                                            new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-discharge")
+                                        )
+                                    ),
+                                    new XElement(ns + "type",
+                                        new XElement(ns + "coding",
+                                            new XElement(ns + "code",
+                                                new XAttribute("value", livingStatus)
                                             )
-                                        ),
-                                        new XElement(ns + "type",
-                                            new XElement(ns + "coding",
-                                                new XElement(ns + "code",
-                                                    new XAttribute("value", livingStatus)
-                                                )
-                                            )
-                                        ),
-                                        !string.IsNullOrWhiteSpace(dischargedToFacilityNumber)
-                                        ? new XElement(ns + "managingOrganization",
-                                            new XElement(ns + "identifier",
-                                                new XElement(ns + "value", new XAttribute("value", dischargedToFacilityNumber))
-                                            )
-                                        ) : null
-                                    )
+                                        )
+                                    ),
+                                    !string.IsNullOrWhiteSpace(dischargedToFacilityNumber)
+                                    ? new XElement(ns + "managingOrganization",
+                                        new XElement(ns + "identifier",
+                                            new XElement(ns + "value", new XAttribute("value", dischargedToFacilityNumber))
+                                        )
+                                    ) : null
                                 )
-                                : null,
-
+                            )
+                            : null,
+            #region Commented Code
                             //// contained - program type 1
                             //!string.IsNullOrWhiteSpace(patientId) &&
                             //!string.IsNullOrWhiteSpace(stayStartDate) &&
@@ -227,99 +273,33 @@ namespace IFIC.FileIngestor.Transformers
                             //        )
                             //    )
                             //    : null,
-
+            #endregion
                             // contained - Payment Source
-                           
-                                new XElement(ns + "contained",
-                                    new XElement(ns + "Account",
-                                        new XElement(ns + "id",
-                                            new XAttribute("value", "paymentSource")
-                                        ),
-                                        new XElement(ns + "meta",
-                                            new XElement(ns + "profile",
-                                                new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-account")
-                                            )
-                                        ),
-                                        new XElement(ns + "type",
-                                            new XElement(ns + "coding",
-                                                new XElement(ns + "code",
-                                                    new XAttribute("value", "PBILLACCT")
-                                                )
-                                            )
-                                        ),
-                                        new XElement(ns + "coverage",
+                            new XElement(ns + "contained",
+                                new XElement(ns + "Account",
+                                    new XElement(ns + "id", new XAttribute("value", "paymentSource")),
+                                    new XElement(ns + "meta",
+                                        new XElement(ns + "profile", new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-account"))
+                                    ),
+                                    new XElement(ns + "type",
+                                        new XElement(ns + "coding",
+                                            new XElement(ns + "code", new XAttribute("value", "PBILLACCT"))
+                                        )
+                                    ),
+                                    // Dynamically add <coverage> elements inside Account
+                                    coverageCodes
+                                        .Where(code => parsedFile.Encounter.ContainsKey(code) && !string.IsNullOrWhiteSpace(parsedFile.Encounter[code]))
+                                        .Select(code => new XElement(ns + "coverage",
                                             new XElement(ns + "coverage",
-                                                new XElement(ns + "reference",
-                                                    new XAttribute("value", "#coverage-iA7a")// TODO - hard coded? (coverage-iA7a = Insurance Account 7a?)
-                                                )
+                                                new XElement(ns + "reference", new XAttribute("value", $"#coverage-{code}"))
                                             )
-                                        ),
-                                        new XElement(ns + "coverage",
-                                            new XElement(ns + "coverage",
-                                                new XElement(ns + "reference",
-                                                    new XAttribute("value", "#coverage-iA7f")// TODO - hard coded? (coverage-iA7f = Insurance Account 7f?)
-                                                )
-                                            )
-                                        )
-                                    )
-                                ),
-
-                            // contained - coverage-iA7a
-                            
-                                new XElement(ns + "contained",
-                                    new XElement(ns + "Coverage",
-                                        new XElement(ns + "id",
-                                            new XAttribute("value", "coverage-iA7a")
-                                        ),
-                                        new XElement(ns + "meta",
-                                            new XElement(ns + "profile",
-                                                new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-coverage")
-                                            )
-                                        ),
-                                        new XElement(ns + "type",
-                                            new XElement(ns + "coding",
-                                                new XElement(ns + "code",
-                                                    new XAttribute("value", "INPUBLICPOL")// TODO - hard coded? (INPUBLICPOL = Insurance Public Policy)
-                                                )
-                                            )
-                                        ),
-                                        new XElement(ns + "period",
-                                            new XElement(ns + "start",
-                                                new XAttribute("value", "2017-01-01")//Will be B2 or A12 depending on assessment type in admin.The only time it is A12 if the axType contains the word return.
-                                            )
-                                        )
-                                    )
-                                ),
-
-                            // contained - coverage-iA7f
-                            
-                                new XElement(ns + "contained",
-                                    new XElement(ns + "Coverage",
-                                        new XElement(ns + "id",
-                                            new XAttribute("value", "coverage-iA7f")
-                                        ),
-                                        new XElement(ns + "meta",
-                                            new XElement(ns + "profile",
-                                                new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-coverage")
-                                            )
-                                        ),
-                                        new XElement(ns + "type",
-                                            new XElement(ns + "coding",
-                                                new XElement(ns + "code",
-                                                    new XAttribute("value", "pay")// TODO - hard coded? (pay = Private Insurance?)
-                                                )
-                                            )
-                                        ),
-                                        new XElement(ns + "period",
-                                            new XElement(ns + "start",
-                                                new XAttribute("value", "2017-01-01")// TODO - hard coded? (start date for coverage?)
-                                            )
-                                        )
-                                    )
-                                ),
-
+                                        ))
+                                )
+                            ),
+                            CreateICodeA7Elements(parsedFile),
+            #region Commented Code 2
                             //// contained - Reference to the contained program type
-                           
+
                             //new XElement(ns + "extension",
                             //    new XAttribute("url", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-includes"),
                             //    new XElement(ns + "valueReference",
@@ -333,6 +313,9 @@ namespace IFIC.FileIngestor.Transformers
                             //new XElement(ns + "status",
                             //    new XAttribute("value", "planned")
                             //),
+
+
+            #endregion
                             // contained - Patient ID
                             !string.IsNullOrWhiteSpace(patientId)
                                 ? new XElement(ns + "subject",
@@ -343,17 +326,17 @@ namespace IFIC.FileIngestor.Transformers
                                 : null,
 
                             // period
-                            !string.IsNullOrWhiteSpace(stayStartDate) || !string.IsNullOrWhiteSpace(stayEndDate)
+                            !string.IsNullOrWhiteSpace(StartDate) || !string.IsNullOrWhiteSpace(stayEndDate)
                                 ? new XElement(ns + "period",
                                     new XElement(ns + "start",
-                                        new XAttribute("value", stayStartDate)// Again conditional with A12 see comment above based on axType
+                                        new XAttribute("value", StartDate)
                                     ),
                                     new XElement(ns + "end",
                                         new XAttribute("value", stayEndDate)
                                     )
                                 )
                                 : null,
-
+            #region Commented Code 3
                             //new XElement(ns + "Account",
                             //    new XElement(ns + "id",
                             //        new XAttribute("value", "#paymentSource")
@@ -416,7 +399,7 @@ namespace IFIC.FileIngestor.Transformers
                             //    )
                             //)
                             //: null,
-
+            #endregion
                             // Faciltiy/agnecy identifier this encounter is related to
                             new XElement(ns + "serviceProvider",
                                 new XElement(ns + "identifier",

@@ -37,20 +37,19 @@ namespace IFIC.Runner
             IHost host = CreateHostBuilder(args).Build();
             var logger = host.Services.GetRequiredService<ILogger<Program>>();
             var apiClient = host.Services.GetRequiredService<IApiClient>();
+            // Resolve paths
+            string baseDir = AppContext.BaseDirectory;
+            string outputFolder = Path.Combine(baseDir, "Output");
+            Directory.CreateDirectory(outputFolder);
+
+            string logFolder = Path.Combine(baseDir, "Logs");
+            Directory.CreateDirectory(logFolder);
+
+            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string logFile = Path.Combine(logFolder, $"runlog_{timestamp}.txt");
 
             try
             {
-                // Resolve paths
-                string baseDir = AppContext.BaseDirectory;
-                string outputFolder = Path.Combine(baseDir, "Output");
-                Directory.CreateDirectory(outputFolder);
-
-                string logFolder = Path.Combine(baseDir, "Logs");
-                Directory.CreateDirectory(logFolder);
-
-                string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                string logFile = Path.Combine(logFolder, $"runlog_{timestamp}.txt");
-
                 if (args.Length >= 2 && args[0].Equals("--simulate", StringComparison.OrdinalIgnoreCase))
                 {
                     // Simulation mode
@@ -77,7 +76,7 @@ namespace IFIC.Runner
                 else
                 {
                     // Default mode: Process flat file → Build Bundle → Submit
-                    string flatFilePath = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SimpleFlatFiles", "Simple-Encounter.dat");
+                    string flatFilePath = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SimpleFlatFiles", "Simple-Patient.dat");
 
                     logger.LogInformation("Processing flat file: {File}", flatFilePath);
                     File.AppendAllText(logFile, $"Processing flat file: {flatFilePath}{Environment.NewLine}");
@@ -93,26 +92,26 @@ namespace IFIC.Runner
                     var parser = new FlatFileParser();
                     var parsedFile = parser.Parse(flatFilePath);
 
-                    //// Build FHIR Patient Bundle
-                    //var patientBuilder = new PatientXmlBuilder();
-                    //var patientDoc = patientBuilder.BuildPatientBundle(parsedFile);
+                    // Build FHIR Patient Bundle
+                    var patientBuilder = new PatientXmlBuilder();
+                    var patientDoc = patientBuilder.BuildPatientBundle(parsedFile);
 
                     //// Build FHIR Encounter Bundle
                     //var encounterBuilder = new EncounterXmlBuilder();
                     //var encounterDoc = encounterBuilder.BuildEncounterBundle(parsedFile);
 
-                    // Build FHIR QuestionnaireResponse Bundle
-                    var QuestionnaireResponseBuilder = new QuestionnaireResponseBuilder();
-                    var QuestionnaireResponseDoc = QuestionnaireResponseBuilder.BuildQuestionnaireResponsBundle(parsedFile);
+                    //// Build FHIR QuestionnaireResponse Bundle
+                    //var QuestionnaireResponseBuilder = new QuestionnaireResponseBuilder();
+                    //var QuestionnaireResponseDoc = QuestionnaireResponseBuilder.BuildQuestionnaireResponsBundle(parsedFile);
 
                     // Save XML locally
                     string outputPath = Path.Combine(outputFolder, $"fhir_patient_bundle_{timestamp}.xml");
-                    await File.WriteAllTextAsync(outputPath, QuestionnaireResponseDoc.ToString());
+                    await File.WriteAllTextAsync(outputPath, patientDoc.ToString());
                     logger.LogInformation("FHIR Bundle saved to: {OutputPath}", outputPath);
                     File.AppendAllText(logFile, $"FHIR Bundle saved: {outputPath}{Environment.NewLine}");
 
                     // Submit to CIHI
-                    string xmlContentForSubmit = QuestionnaireResponseDoc.ToString();
+                    string xmlContentForSubmit = patientDoc.ToString();
                     logger.LogInformation("Submitting bundle to CIHI...");
                     File.AppendAllText(logFile, $"Submitting bundle at: {DateTime.Now}{Environment.NewLine}");
                     await apiClient.SubmitXmlAsync(xmlContentForSubmit);
@@ -123,6 +122,7 @@ namespace IFIC.Runner
             }
             catch (Exception ex)
             {
+                File.AppendAllText(logFile, ex.ToString());
                 logger.LogError(ex, "An error occurred during processing.");
             }
         }

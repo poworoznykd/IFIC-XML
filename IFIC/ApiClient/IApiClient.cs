@@ -17,6 +17,7 @@ namespace IFIC.ApiClient
         /// </summary>
         /// <param name="xmlContent">FHIR-compliant XML string to submit</param>
         /// <returns>A string containing the response from the CIHI API</returns>
-        Task<string> SubmitXmlAsync(string xmlContent);
+        Task SubmitXmlAsync(string xmlContent);
+
     }
 }

@@ -104,7 +104,7 @@ namespace IFIC.FileIngestor.Transformers
                                             new XElement(ns + "code", new XAttribute("value", "MR"))
                                         )
                                     ),
-                                    new XElement(ns + "system", new XAttribute("value", "http://acme.vendor.com/facility-x")),
+                                    new XElement(ns + "system", new XAttribute("value", "http://acme.vendor.com/facility-cm")),/*could be http://acme.vendor.com/facility-x */
                                     new XElement(ns + "value", new XAttribute("value", caseId))
                                 )
                                 : null,
@@ -117,6 +117,7 @@ namespace IFIC.FileIngestor.Transformers
                             // Address (PostalCode)
                             !string.IsNullOrWhiteSpace(postalCode)
                                 ? new XElement(ns + "address",
+                                    new XElement(ns + "use", new XAttribute("value", "home")),
                                     new XElement(ns + "postalCode", new XAttribute("value", postalCode))
                                   )
                                 : null,
@@ -143,7 +144,7 @@ namespace IFIC.FileIngestor.Transformers
                     ),
                     new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "POST")),
-                        new XElement(ns + "url", new XAttribute("value", "Patient"))
+                        new XElement(ns + "url", new XAttribute("value", $"Patient"))
                     )
                 )
             );
