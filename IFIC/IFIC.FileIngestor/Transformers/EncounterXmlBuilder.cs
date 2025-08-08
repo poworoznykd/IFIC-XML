@@ -59,24 +59,18 @@ namespace IFIC.FileIngestor.Transformers
         }
 
         /// <summary>
-        /// 
+        /// Builds an Encounter entry element for the FHIR Bundle using parsed flat file data.
         /// </summary>
         /// <param name="parsedFile"></param>
+        /// <param name="patientId"></param>
+        /// <param name="encounterId"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        public XDocument BuildEncounterBundle(ParsedFlatFile parsedFile)
+        public XElement BuildEncounterEntry(
+            ParsedFlatFile parsedFile,
+            string patientId,
+            string encounterId)
         {
-            if (parsedFile == null)
-            {
-                throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
-            }
-
-            // Generate unique IDs for resources
-            string bundleId = Guid.NewGuid().ToString();
-            string encounterId = Guid.NewGuid().ToString();
-            string patientId = Guid.NewGuid().ToString();
             var coverageCodes = new[] { "iA7a", "iA7b", "iA7c", "iA7d", "iA7e", "iA7f", "iA7g", "iA7h", "iA7i", "iA7j", "iA7k" };
-            // Extract encounter values from flat file
 
             parsedFile.Encounter.TryGetValue("B5A", out var admittedFrom);
             parsedFile.Encounter.TryGetValue("B2", out var stayStartDate);
@@ -87,11 +81,7 @@ namespace IFIC.FileIngestor.Transformers
             parsedFile.Encounter.TryGetValue("R4", out var dischargedToFacilityNumber);
 
             // Create Bundle document
-            var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
-                new XElement(ns + "id", new XAttribute("value", bundleId)),
-                new XElement(ns + "type", new XAttribute("value", "transaction")),
-
-                new XElement(ns + "entry",
+            var result = new XElement(ns + "entry",
                     new XElement(ns + "fullUrl", new XAttribute("value", $"urn:uuid:{encounterId}")),
                     new XElement(ns + "resource",
                         new XElement(ns + "Encounter",
@@ -413,8 +403,46 @@ namespace IFIC.FileIngestor.Transformers
                         new XElement(ns + "method", new XAttribute("value", "POST")),
                         new XElement(ns + "url", new XAttribute("value", "Encounter"))
                     )
-                )
+                );
+
+            return result;
+        }
+
+        /// <summary>
+        /// Builds the header for an Encounter Bundle.
+        /// </summary>
+        /// <param name="parsedFile"></param>
+        /// <returns></returns>
+        public XElement BuildEncounterBundleHeader(ParsedFlatFile parsedFile)
+        {
+            // Generate unique IDs for resources
+            string bundleId = Guid.NewGuid().ToString();
+            string encounterId = Guid.NewGuid().ToString();
+            string patientId = Guid.NewGuid().ToString();
+
+            // Create Bundle document
+            var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
+                new XElement(ns + "id", new XAttribute("value", bundleId)),
+                new XElement(ns + "type", new XAttribute("value", "transaction")),
+                BuildEncounterEntry(parsedFile, patientId, encounterId)
             );
+
+            return bundle;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parsedFile"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public XDocument BuildEncounterBundle(ParsedFlatFile parsedFile)
+        {
+            if (parsedFile == null)
+            {
+                throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
+            }
+            XElement bundle = BuildEncounterBundleHeader(parsedFile);
 
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
         }

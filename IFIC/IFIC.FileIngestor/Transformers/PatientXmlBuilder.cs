@@ -8,6 +8,7 @@
 ************************************************************************************/
 
 using System;
+using System.Reflection;
 using System.Xml.Linq;
 using IFIC.FileIngestor.Models;
 
@@ -20,22 +21,30 @@ namespace IFIC.FileIngestor.Transformers
     {
         private static readonly XNamespace ns = "http://hl7.org/fhir";
        
-        /// <summary>
-        /// Builds a FHIR Bundle containing a Patient resource using parsed flat file data.
-        /// </summary>
-        /// <param name="parsedFile">The parsed flat file containing patient data.</param>
-        /// <returns>XDocument representing the FHIR Bundle XML.</returns>
-        public XDocument BuildPatientBundle(ParsedFlatFile parsedFile)
+        public XElement BuildPatientBundleHeader(ParsedFlatFile parsedFile)
         {
-            if (parsedFile == null)
-            {
-                throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
-            }
-
             // Generate unique IDs for resources
             string bundleId = Guid.NewGuid().ToString();
             string patientId = Guid.NewGuid().ToString();
 
+          
+            // Create Bundle document
+            var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
+                new XElement(ns + "id", new XAttribute("value", bundleId)),
+                new XElement(ns + "type", new XAttribute("value", "transaction")),
+                BuildPatientEntry(parsedFile, patientId)
+            );
+
+            return bundle;
+        }
+
+        /// <summary>
+        /// Builds a Patient entry element for the FHIR Bundle using parsed flat file data.
+        /// </summary>
+        /// <param name="parsedFile"></param>
+        /// <returns></returns>
+        XElement BuildPatientEntry(ParsedFlatFile parsedFile, string patientId)
+        {
             // Extract patient values from flat file
             parsedFile.Patient.TryGetValue("A5A", out var healthCardNumber);
             parsedFile.Patient.TryGetValue("A5B", out var province);
@@ -47,12 +56,8 @@ namespace IFIC.FileIngestor.Transformers
             parsedFile.Patient.TryGetValue("B6", out var postalCode);
             parsedFile.Patient.TryGetValue("OrgID", out var orgId);
 
-            // Create Bundle document
-            var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
-                new XElement(ns + "id", new XAttribute("value", bundleId)),
-                new XElement(ns + "type", new XAttribute("value", "transaction")),
 
-                new XElement(ns + "entry",
+            XElement result = new XElement(ns + "entry",
                     new XElement(ns + "fullUrl", new XAttribute("value", $"urn:uuid:{patientId}")),
                     new XElement(ns + "resource",
                         new XElement(ns + "Patient",
@@ -64,7 +69,7 @@ namespace IFIC.FileIngestor.Transformers
                                 )
                             ),
 
-                            // Identifier - Sex at birth
+            // Identifier - Sex at birth
                             !string.IsNullOrWhiteSpace(gender)
                                 ? new XElement(ns + "extension", new XAttribute("url", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-birth-sex"),
                                     new XElement(ns + "valueCode", new XAttribute("value", gender))
@@ -146,9 +151,24 @@ namespace IFIC.FileIngestor.Transformers
                         new XElement(ns + "method", new XAttribute("value", "POST")),
                         new XElement(ns + "url", new XAttribute("value", $"Patient"))
                     )
-                )
-            );
+                );
 
+            return result;
+        }
+
+        /// <summary>
+        /// Builds a FHIR Bundle containing a Patient resource using parsed flat file data.
+        /// </summary>
+        /// <param name="parsedFile">The parsed flat file containing patient data.</param>
+        /// <returns>XDocument representing the FHIR Bundle XML.</returns>
+        public XDocument BuildPatientBundle(ParsedFlatFile parsedFile)
+        {
+            if (parsedFile == null)
+            {
+                throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
+            }
+
+            XElement bundle = BuildPatientBundleHeader(parsedFile);
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
         }
     }
