@@ -21,13 +21,15 @@ namespace IFIC.FileIngestor.Transformers
     {
         private static readonly XNamespace ns = "http://hl7.org/fhir";
        
-        public XElement BuildPatientBundleHeader(ParsedFlatFile parsedFile)
+        public XElement BuildPatientBundleHeader(
+            ParsedFlatFile parsedFile,
+            string bundleId,
+            string patientId)
         {
             // Generate unique IDs for resources
-            string bundleId = Guid.NewGuid().ToString();
-            string patientId = Guid.NewGuid().ToString();
-
-          
+            bundleId = string.IsNullOrEmpty(bundleId) ? Guid.NewGuid().ToString() : bundleId;
+            patientId = string.IsNullOrEmpty(patientId) ? Guid.NewGuid().ToString() : patientId;
+            
             // Create Bundle document
             var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
                 new XElement(ns + "id", new XAttribute("value", bundleId)),
@@ -43,7 +45,9 @@ namespace IFIC.FileIngestor.Transformers
         /// </summary>
         /// <param name="parsedFile"></param>
         /// <returns></returns>
-        XElement BuildPatientEntry(ParsedFlatFile parsedFile, string patientId)
+        public XElement BuildPatientEntry(
+            ParsedFlatFile parsedFile, 
+            string patientId)
         {
             // Extract patient values from flat file
             parsedFile.Patient.TryGetValue("A5A", out var healthCardNumber);
@@ -149,7 +153,7 @@ namespace IFIC.FileIngestor.Transformers
                     ),
                     new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "POST")),
-                        new XElement(ns + "url", new XAttribute("value", $"Patient"))
+                        new XElement(ns + "url", new XAttribute("value", $"urn:uuid:{patientId}"))
                     )
                 );
 
@@ -168,7 +172,10 @@ namespace IFIC.FileIngestor.Transformers
                 throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
             }
 
-            XElement bundle = BuildPatientBundleHeader(parsedFile);
+            XElement bundle = BuildPatientBundleHeader(
+                parsedFile, 
+                null, 
+                null);
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
         }
     }

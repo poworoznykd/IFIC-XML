@@ -123,7 +123,9 @@ namespace IFIC.FileIngestor.Transformers
                             : null,
 
                         // contained - discharged to
-                        !string.IsNullOrWhiteSpace(orgId)
+                        !string.IsNullOrWhiteSpace(orgId) &&
+                        !string.IsNullOrWhiteSpace(livingStatus) &&
+                        !string.IsNullOrWhiteSpace(dischargedToFacilityNumber)
                             ? new XElement(ns + "contained",
                                 new XElement(ns + "Location",
                                     new XElement(ns + "id",
@@ -316,7 +318,7 @@ namespace IFIC.FileIngestor.Transformers
                                 : null,
 
                             // period
-                            !string.IsNullOrWhiteSpace(StartDate) || !string.IsNullOrWhiteSpace(stayEndDate)
+                            !string.IsNullOrWhiteSpace(StartDate) && !string.IsNullOrWhiteSpace(stayEndDate)
                                 ? new XElement(ns + "period",
                                     new XElement(ns + "start",
                                         new XAttribute("value", StartDate)
@@ -393,7 +395,7 @@ namespace IFIC.FileIngestor.Transformers
                             // Faciltiy/agnecy identifier this encounter is related to
                             new XElement(ns + "serviceProvider",
                                 new XElement(ns + "identifier",
-                                    new XElement(ns + "system", new XAttribute("value", "http://cihi.ca/fhir/NamingSystem/on-ministry-of-health-and-long-term-care-submission-identifier")),
+                                    new XElement(ns + "system", new XAttribute("value", "http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier")),
                                     new XElement(ns + "value", new XAttribute("value", orgId))
                                 )
                             )
@@ -401,7 +403,7 @@ namespace IFIC.FileIngestor.Transformers
                     ),
                     new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "POST")),
-                        new XElement(ns + "url", new XAttribute("value", "Encounter"))
+                        new XElement(ns + "url", new XAttribute("value", $"urn:uuid:{encounterId}"))
                     )
                 );
 
@@ -413,12 +415,16 @@ namespace IFIC.FileIngestor.Transformers
         /// </summary>
         /// <param name="parsedFile"></param>
         /// <returns></returns>
-        public XElement BuildEncounterBundleHeader(ParsedFlatFile parsedFile)
+        public XElement BuildEncounterBundleHeader(
+            ParsedFlatFile parsedFile,
+            string bundleId,
+            string patientId,
+            string encounterId)
         {
             // Generate unique IDs for resources
-            string bundleId = Guid.NewGuid().ToString();
-            string encounterId = Guid.NewGuid().ToString();
-            string patientId = Guid.NewGuid().ToString();
+            bundleId = string.IsNullOrEmpty(bundleId) ? Guid.NewGuid().ToString() : bundleId;
+            patientId = string.IsNullOrEmpty(patientId) ? Guid.NewGuid().ToString() : patientId;
+            encounterId = string.IsNullOrEmpty(encounterId) ? Guid.NewGuid().ToString() : encounterId;
 
             // Create Bundle document
             var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
@@ -442,7 +448,11 @@ namespace IFIC.FileIngestor.Transformers
             {
                 throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
             }
-            XElement bundle = BuildEncounterBundleHeader(parsedFile);
+            XElement bundle = BuildEncounterBundleHeader(
+                parsedFile,
+                null,
+                null,
+                null);
 
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
         }

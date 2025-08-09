@@ -16,6 +16,67 @@ namespace IFIC.FileIngestor.Transformers
     {
         private static readonly XNamespace ns = "http://hl7.org/fhir";
 
+        // === Added helpers to prune empty nodes and sections ===
+        private static bool HasValueAttribute(XElement e)
+        {
+            var attr = e.Attribute("value");
+            return attr != null && !string.IsNullOrWhiteSpace(attr.Value);
+        }
+
+        /// <summary>
+        /// Recursively remove empty leaf nodes and prunes any <item> that contains only linkId and no actual answers/sub-items.
+        /// Also removes <answer> blocks that have no valid child value nodes.
+        /// </summary>
+        private void PruneQuestionnaireResponseEntry(XElement entryRoot)
+        {
+            if (entryRoot == null) return;
+
+            // Work only inside the QuestionnaireResponse resource of this entry
+            XNamespace n = ns;
+            var qr = entryRoot.Descendants(n + "QuestionnaireResponse").FirstOrDefault();
+            if (qr == null) return;
+
+            // Remove any value nodes that have no @value (e.g., <valueString/>, <valueDate/>, <code/> without value attr)
+            var valueNodeNames = new[] { "valueString", "valueDecimal", "valueInteger", "valueDate", "valueTime", "code" };
+            foreach (var v in qr.Descendants().Where(x => valueNodeNames.Contains(x.Name.LocalName)).ToList())
+            {
+                if (!HasValueAttribute(v))
+                    v.Remove();
+            }
+
+            // Remove <valueCoding> with no <code>
+            foreach (var vc in qr.Descendants(n + "valueCoding").ToList())
+            {
+                if (!vc.Elements(n + "code").Any())
+                    vc.Remove();
+            }
+
+            // Remove <answer> with no children after previous pruning
+            foreach (var ans in qr.Descendants(n + "answer").ToList())
+            {
+                if (!ans.Elements().Any())
+                    ans.Remove();
+            }
+
+            // Recursively prune empty <item> nodes: keep if it has any sub-items or answers after pruning
+            bool removed;
+            do
+            {
+                removed = false;
+                foreach (var item in qr.Descendants(n + "item").ToList())
+                {
+                    // Keep the section/item if it has at least one non-linkId child element
+                    var childElems = item.Elements().Where(e => e.Name.LocalName != "linkId").ToList();
+                    if (childElems.Count == 0)
+                    {
+                        item.Remove();
+                        removed = true;
+                    }
+                }
+            } while (removed);
+        }
+
+
         /// <summary>
         /// Builds a FHIR QuestionnaireResponse entry for the Bundle using parsed flat file data.
         /// </summary>
@@ -799,7 +860,7 @@ namespace IFIC.FileIngestor.Transformers
             #endregion
 
             parsedFile.Patient.TryGetValue("OrgID", out var orgId);
-            return new XElement(ns + "entry",
+            var entry = new XElement(ns + "entry",
                 new XElement(ns + "fullUrl", SafeAttr("value", $"urn:uuid:{questionnaireResponseId}")),
                 new XElement(ns + "resource",
                     new XElement(ns + "QuestionnaireResponse",
@@ -3527,7 +3588,12 @@ namespace IFIC.FileIngestor.Transformers
                                 )
                         )
                     )
-                );    
+                );
+
+            // Prune empty sections/items/answers with missing values
+            PruneQuestionnaireResponseEntry(entry);
+
+            return entry;
         }
 
         /// <summary>
@@ -3535,16 +3601,21 @@ namespace IFIC.FileIngestor.Transformers
         /// </summary>
         /// <param name="parsedFile"></param>
         /// <returns></returns>
-        public XElement BuildQuestionnaireResponseBundleHeader(ParsedFlatFile parsedFile)
+        public XElement BuildQuestionnaireResponseBundleHeader(
+            ParsedFlatFile parsedFile,
+            string bundleId,
+            string patientId,
+            string encounterId,
+            string questionnaireResponseId)
         {
             XAttribute SafeAttr(XName name, string value) => string.IsNullOrWhiteSpace(value) ? null : new XAttribute(name, value);
 
             // Generate unique IDs for resources
-            string bundleId = Guid.NewGuid().ToString();
-            string patientId = Guid.NewGuid().ToString();
-            string encounterId = Guid.NewGuid().ToString();
-            string questionnaireResponseId = Guid.NewGuid().ToString();
-           
+            bundleId = string.IsNullOrEmpty(bundleId) ? Guid.NewGuid().ToString() : bundleId;
+            patientId = string.IsNullOrEmpty(patientId) ? Guid.NewGuid().ToString() : patientId;
+            encounterId = string.IsNullOrEmpty(encounterId) ? Guid.NewGuid().ToString() : encounterId;
+            questionnaireResponseId = string.IsNullOrEmpty(questionnaireResponseId) ? Guid.NewGuid().ToString() : questionnaireResponseId;
+
             parsedFile.Patient.TryGetValue("OrgID", out var orgId);
 
             return new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
@@ -3557,11 +3628,11 @@ namespace IFIC.FileIngestor.Transformers
                     questionnaireResponseId),
                 new XElement(ns + "request",
                     new XElement(ns + "method", SafeAttr("value", "POST")),
-                    new XElement(ns + "url", SafeAttr("value", "QuestionnaireResponse"))
+                    new XElement(ns + "url", new XAttribute("value", $"urn:uuid:{questionnaireResponseId}"))
                 )
             );
         }
-        
+
         /// <summary>
         /// Builds a FHIR Bundle containing a Patient resource using parsed flat file data.
         /// </summary>
@@ -3573,7 +3644,12 @@ namespace IFIC.FileIngestor.Transformers
             {
                 throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
             }
-            XElement bundle = BuildQuestionnaireResponseBundleHeader(parsedFile);
+            XElement bundle = BuildQuestionnaireResponseBundleHeader(
+                parsedFile,
+                null,
+                null,
+                null,
+                null);
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
         }
     }

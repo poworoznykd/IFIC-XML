@@ -18,7 +18,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using IFIC.ApiClient;
 using IFIC.Auth;
-using IFIC.FileIngestor.Builders;
 using IFIC.FileIngestor.Parsers;
 using IFIC.FileIngestor.Transformers;
 
@@ -76,7 +75,7 @@ namespace IFIC.Runner
                 else
                 {
                     // Default mode: Process flat file → Build Bundle → Submit
-                    string flatFilePath = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SimpleFlatFiles", "Simple-Patient.dat");
+                    string flatFilePath = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SimpleFlatFiles", "Simple-Bundle.dat");
 
                     logger.LogInformation("Processing flat file: {File}", flatFilePath);
                     File.AppendAllText(logFile, $"Processing flat file: {flatFilePath}{Environment.NewLine}");
@@ -96,22 +95,29 @@ namespace IFIC.Runner
                     var patientBuilder = new PatientXmlBuilder();
                     var patientDoc = patientBuilder.BuildPatientBundle(parsedFile);
 
-                    //// Build FHIR Encounter Bundle
-                    //var encounterBuilder = new EncounterXmlBuilder();
-                    //var encounterDoc = encounterBuilder.BuildEncounterBundle(parsedFile);
+                    // Build FHIR Encounter Bundle
+                    var encounterBuilder = new EncounterXmlBuilder();
+                    var encounterDoc = encounterBuilder.BuildEncounterBundle(parsedFile);
 
-                    //// Build FHIR QuestionnaireResponse Bundle
-                    //var QuestionnaireResponseBuilder = new QuestionnaireResponseBuilder();
-                    //var QuestionnaireResponseDoc = QuestionnaireResponseBuilder.BuildQuestionnaireResponseBundle(parsedFile);
+                    // Build FHIR QuestionnaireResponse Bundle
+                    var questionnaireResponseBuilder = new QuestionnaireResponseBuilder();
+                    var questionnaireResponseDoc = questionnaireResponseBuilder.BuildQuestionnaireResponseBundle(parsedFile);
+
+                    var bundleBuilder = new BundleXmlBuilder();
+                    var bundleResponseDoc = bundleBuilder.BuildFullBundle(
+                        parsedFile,
+                        patientBuilder,
+                        encounterBuilder,
+                        questionnaireResponseBuilder);
 
                     // Save XML locally
-                    string outputPath = Path.Combine(outputFolder, $"fhir_patient_bundle_{timestamp}.xml");
-                    await File.WriteAllTextAsync(outputPath, patientDoc.ToString());
+                    string outputPath = Path.Combine(outputFolder, $"fhir_bundle_{timestamp}.xml");
+                    await File.WriteAllTextAsync(outputPath, bundleResponseDoc.ToString());
                     logger.LogInformation("FHIR Bundle saved to: {OutputPath}", outputPath);
                     File.AppendAllText(logFile, $"FHIR Bundle saved: {outputPath}{Environment.NewLine}");
 
                     // Submit to CIHI
-                    string xmlContentForSubmit = patientDoc.ToString();
+                    string xmlContentForSubmit = bundleResponseDoc.ToString();
                     logger.LogInformation("Submitting bundle to CIHI...");
                     File.AppendAllText(logFile, $"Submitting bundle at: {DateTime.Now}{Environment.NewLine}");
                     await apiClient.SubmitXmlAsync(xmlContentForSubmit);

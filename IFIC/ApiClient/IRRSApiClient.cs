@@ -14,6 +14,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 using IFIC.Auth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -75,25 +76,29 @@ namespace IFIC.ApiClient
             var response = await httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
 
-            // Attempt to extract transaction_id header
-            if (response.Headers.TryGetValues("transaction_id", out var transactionIdValues))
+            // Try to get the transaction ID from headers
+            string transactionId = null;
+            if (response.Headers.TryGetValues("x-cihi-transaction-id", out var values))
             {
-                var transactionId = transactionIdValues.FirstOrDefault();
-                logger.LogInformation("CIHI submission response includes transaction_id: {TransactionId}", transactionId);
-                Console.WriteLine($"FHIR Submission Transaction ID: {transactionId}");
+                transactionId = values.FirstOrDefault();
             }
             else
             {
-                logger.LogWarning("No transaction_id header found in CIHI submission response.");
                 Console.WriteLine("No transaction_id header found in CIHI submission response.");
             }
 
             // Check for failure
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogError("Submission failed with status code {StatusCode}. Response: {Response}", response.StatusCode, responseContent);
+                logger.LogError(
+                    "Submission failed with status code {StatusCode}. Response: {Response} Transaction ID: {TransactionID}",
+                    response.StatusCode,
+                    responseContent,
+                    transactionId ?? "N/A"
+                );
+
                 Console.WriteLine($"Submission failed: {response.StatusCode}");
-                throw new HttpRequestException($"CIHI submission failed: {response.StatusCode} - {responseContent}");
+                throw new HttpRequestException($"CIHI submission failed: {"Transaction ID: " + transactionId + " "} {response.StatusCode} - {responseContent}");
             }
 
             // Success
