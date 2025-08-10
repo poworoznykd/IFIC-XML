@@ -30,23 +30,59 @@ namespace IFIC.FileIngestor.Transformers
             string questionnaireResponseId = Guid.NewGuid().ToString();
 
 
+            //// Create Bundle document
+            //var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
+            //    new XElement(ns + "id", new XAttribute("value", bundleId)),
+            //    new XElement(ns + "type", new XAttribute("value", "transaction")),
+            //    encounterXmlBuilder.BuildEncounterEntry(
+            //        parsedFile, 
+            //        patientId,
+            //        encounterId),
+            //    questionnaireResponseBuilder.BuildQuestionnaireResponseEntry(
+            //        parsedFile, 
+            //        patientId,
+            //        encounterId,
+            //        questionnaireResponseId),
+            //    patientBuilder.BuildPatientEntry(
+            //        parsedFile, 
+            //        patientId)
+            //);
             // Create Bundle document
-            var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
-                new XElement(ns + "id", new XAttribute("value", bundleId)),
-                new XElement(ns + "type", new XAttribute("value", "transaction")),
-                encounterXmlBuilder.BuildEncounterEntry(
-                    parsedFile, 
+            var bundleElements = new List<object>
+{
+    new XElement(ns + "id", new XAttribute("value", bundleId)),
+    new XElement(ns + "type", new XAttribute("value", "transaction"))
+};
+            if (encounterXmlBuilder != null)
+            {
+                var encounterEntry = encounterXmlBuilder.BuildEncounterEntry(
+                    parsedFile,
                     patientId,
-                    encounterId),
-                questionnaireResponseBuilder.BuildQuestionnaireResponseEntry(
-                    parsedFile, 
+                    encounterId
+                );
+                bundleElements.Add(encounterEntry);
+            }
+            if (questionnaireResponseBuilder != null)
+            {
+                var questionnaireEntry = questionnaireResponseBuilder.BuildQuestionnaireResponseEntry(
+                    parsedFile,
                     patientId,
                     encounterId,
-                    questionnaireResponseId),
-                patientBuilder.BuildPatientEntry(
-                    parsedFile, 
-                    patientId)
-            );
+                    questionnaireResponseId
+                );
+                bundleElements.Add(questionnaireEntry);
+            }
+            if (patientBuilder != null)
+            {
+                var patientEntry = patientBuilder.BuildPatientEntry(
+                    parsedFile,
+                    patientId
+                );
+                bundleElements.Add(patientEntry);
+            }
+
+            var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns), bundleElements);
+
 
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
         }

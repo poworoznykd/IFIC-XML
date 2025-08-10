@@ -75,7 +75,7 @@ namespace IFIC.Runner
                 else
                 {
                     // Default mode: Process flat file → Build Bundle → Submit
-                    string flatFilePath = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SimpleFlatFiles", "Simple-Bundle.dat");
+                    string flatFilePath = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SimpleFlatFiles", "Simple-Bundle-No-Questions.dat");
 
                     logger.LogInformation("Processing flat file: {File}", flatFilePath);
                     File.AppendAllText(logFile, $"Processing flat file: {flatFilePath}{Environment.NewLine}");
@@ -91,17 +91,37 @@ namespace IFIC.Runner
                     var parser = new FlatFileParser();
                     var parsedFile = parser.Parse(flatFilePath);
 
-                    // Build FHIR Patient Bundle
                     var patientBuilder = new PatientXmlBuilder();
-                    var patientDoc = patientBuilder.BuildPatientBundle(parsedFile);
-
-                    // Build FHIR Encounter Bundle
                     var encounterBuilder = new EncounterXmlBuilder();
-                    var encounterDoc = encounterBuilder.BuildEncounterBundle(parsedFile);
-
-                    // Build FHIR QuestionnaireResponse Bundle
                     var questionnaireResponseBuilder = new QuestionnaireResponseBuilder();
-                    var questionnaireResponseDoc = questionnaireResponseBuilder.BuildQuestionnaireResponseBundle(parsedFile);
+
+                    if (parsedFile.Patient.Any())
+                    {
+                        // Build FHIR Patient Bundle
+                        var patientDoc = patientBuilder.BuildPatientBundle(parsedFile);
+                    }
+                    if(parsedFile.Encounter.Any())
+                    {
+                        // Build FHIR Encounter Bundle
+                        var encounterDoc = encounterBuilder.BuildEncounterBundle(parsedFile);
+                    }
+                    if (parsedFile.AssessmentSections.Any())
+                    {
+                        // Build FHIR QuestionnaireResponse Bundle
+                        var questionnaireResponseDoc = questionnaireResponseBuilder.BuildQuestionnaireResponseBundle(parsedFile);
+                    }
+                    if (!parsedFile.Patient.Any())
+                    {
+                        patientBuilder = null;
+                    }
+                    if (!parsedFile.Encounter.Any())
+                    {
+                        encounterBuilder = null;
+                    }
+                    if (!parsedFile.AssessmentSections.Any())
+                    {
+                        questionnaireResponseBuilder = null;
+                    }
 
                     var bundleBuilder = new BundleXmlBuilder();
                     var bundleResponseDoc = bundleBuilder.BuildFullBundle(

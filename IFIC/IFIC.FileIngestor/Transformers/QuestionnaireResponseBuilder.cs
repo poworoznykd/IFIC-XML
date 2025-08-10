@@ -1320,584 +1320,614 @@ namespace IFIC.FileIngestor.Transformers
                         // Section E
                         new XElement(ns + "item",
                             new XElement(ns + "linkId", SafeAttr("value", "E")),
-                            !string.IsNullOrWhiteSpace(negativeStatements)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E1a")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", negativeStatements))
+                            new XElement(ns + "item",
+                                new XElement(ns + "linkId", SafeAttr("value", "E1")),
+                                !string.IsNullOrWhiteSpace(negativeStatements)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E1a")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", negativeStatements))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E1b - Persistent Anger With Self or Others
-                            !string.IsNullOrWhiteSpace(persistentAngerWithSelfOrOthers)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E1b")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", persistentAngerWithSelfOrOthers))
+                                ) : null,
+                                // E1b - Persistent Anger With Self or Others
+                                !string.IsNullOrWhiteSpace(persistentAngerWithSelfOrOthers)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E1b")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", persistentAngerWithSelfOrOthers))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E1c - Unrealistic Fears
-                            !string.IsNullOrWhiteSpace(unrealisticFears)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E1c")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", unrealisticFears))
+                                ) : null,
+                                // E1c - Unrealistic Fears
+                                !string.IsNullOrWhiteSpace(unrealisticFears)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E1c")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", unrealisticFears))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E1d - Repetitive Health Complaints
-                            !string.IsNullOrWhiteSpace(repetitiveHealthComplaints)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E1d")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", repetitiveHealthComplaints))
+                                ) : null,
+                                // E1d - Repetitive Health Complaints
+                                !string.IsNullOrWhiteSpace(repetitiveHealthComplaints)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E1d")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", repetitiveHealthComplaints))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E1e - Repetitive Anxious Complaints/Concerns
-                            !string.IsNullOrWhiteSpace(repetitiveAnxiousComplaints)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E1e")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", repetitiveAnxiousComplaints))
+                                ) : null,
+                                // E1e - Repetitive Anxious Complaints/Concerns
+                                !string.IsNullOrWhiteSpace(repetitiveAnxiousComplaints)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E1e")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", repetitiveAnxiousComplaints))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E1f - Sad, Pained or Worried Facial Expressions
-                            !string.IsNullOrWhiteSpace(sadPainedOrWorriedFacialExpressions)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E1f")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", sadPainedOrWorriedFacialExpressions))
+                                ) : null,
+                                // E1f - Sad, Pained or Worried Facial Expressions
+                                !string.IsNullOrWhiteSpace(sadPainedOrWorriedFacialExpressions)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E1f")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", sadPainedOrWorriedFacialExpressions))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E1g - Crying, Tearfulness
-                            !string.IsNullOrWhiteSpace(cryingTearfulness)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E1g")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", cryingTearfulness))
+                                ) : null,
+                                // E1g - Crying, Tearfulness
+                                !string.IsNullOrWhiteSpace(cryingTearfulness)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E1g")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", cryingTearfulness))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E1h - Recurrent Statements Something Terrible About to Happen
-                            !string.IsNullOrWhiteSpace(recurrentStatementsTerribleAboutToHappen)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E1h")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", recurrentStatementsTerribleAboutToHappen))
+                                ) : null,
+                                // E1h - Recurrent Statements Something Terrible About to Happen
+                                !string.IsNullOrWhiteSpace(recurrentStatementsTerribleAboutToHappen)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E1h")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", recurrentStatementsTerribleAboutToHappen))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E1i - Withdrawal From Activities of Interest
-                            !string.IsNullOrWhiteSpace(withdrawalFromActivitiesOfInterest)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E1i")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", withdrawalFromActivitiesOfInterest))
+                                ) : null,
+                                // E1i - Withdrawal From Activities of Interest
+                                !string.IsNullOrWhiteSpace(withdrawalFromActivitiesOfInterest)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E1i")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", withdrawalFromActivitiesOfInterest))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E1j - Reduced Social Interactions
-                            !string.IsNullOrWhiteSpace(reducedSocialInteractions)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E1j")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", reducedSocialInteractions))
+                                ) : null,
+                                // E1j - Reduced Social Interactions
+                                !string.IsNullOrWhiteSpace(reducedSocialInteractions)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E1j")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", reducedSocialInteractions))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E1k - Lack of Pleasure Expressions
-                            !string.IsNullOrWhiteSpace(lackOfPleasureExpressions)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E1k")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", lackOfPleasureExpressions))
+                                ) : null,
+                                // E1k - Lack of Pleasure Expressions
+                                !string.IsNullOrWhiteSpace(lackOfPleasureExpressions)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E1k")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", lackOfPleasureExpressions))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E2a - Self Report: Little Interest
-                            !string.IsNullOrWhiteSpace(selfReportLittleInterest)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E2a")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", selfReportLittleInterest))
+                                ) : null
+                            ),
+                             new XElement(ns + "item",
+                                new XElement(ns + "linkId", SafeAttr("value", "E1")),
+                                // E2a - Self Report: Little Interest
+                                !string.IsNullOrWhiteSpace(selfReportLittleInterest)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E2a")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", selfReportLittleInterest))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E2b - Self Report: Anxious, Restless or Uneasy
-                            !string.IsNullOrWhiteSpace(selfReportAnxiousRestlessUneasy)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E2b")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", selfReportAnxiousRestlessUneasy))
+                                ) : null,
+                                // E2b - Self Report: Anxious, Restless or Uneasy
+                                !string.IsNullOrWhiteSpace(selfReportAnxiousRestlessUneasy)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E2b")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", selfReportAnxiousRestlessUneasy))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E2c - Self Report: Sad, Depressed or Hopeless
-                            !string.IsNullOrWhiteSpace(selfReportSadDepressedHopeless)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E2c")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", selfReportSadDepressedHopeless))
+                                ) : null,
+                                // E2c - Self Report: Sad, Depressed or Hopeless
+                                !string.IsNullOrWhiteSpace(selfReportSadDepressedHopeless)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E2c")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", selfReportSadDepressedHopeless))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E3a - Wandering
-                            !string.IsNullOrWhiteSpace(wandering)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E3a")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", wandering))
+                                ) : null
+                             ),
+                              new XElement(ns + "item",
+                                new XElement(ns + "linkId", SafeAttr("value", "E1")),
+                                // E3a - Wandering
+                                !string.IsNullOrWhiteSpace(wandering)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E3a")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", wandering))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E3b - Verbal Abuse
-                            !string.IsNullOrWhiteSpace(verbalAbuse)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E3b")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", verbalAbuse))
+                                ) : null,
+                                // E3b - Verbal Abuse
+                                !string.IsNullOrWhiteSpace(verbalAbuse)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E3b")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", verbalAbuse))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E3c - Physical Abuse
-                            !string.IsNullOrWhiteSpace(physicalAbuse)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E3c")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", physicalAbuse))
+                                ) : null,
+                                // E3c - Physical Abuse
+                                !string.IsNullOrWhiteSpace(physicalAbuse)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E3c")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", physicalAbuse))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E3d - Socially Inappropriate
-                            !string.IsNullOrWhiteSpace(sociallyInappropriate)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E3d")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", sociallyInappropriate))
+                                ) : null,
+                                // E3d - Socially Inappropriate
+                                !string.IsNullOrWhiteSpace(sociallyInappropriate)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E3d")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", sociallyInappropriate))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E3e - Inappropriate Sexual Behaviour
-                            !string.IsNullOrWhiteSpace(inappropriateSexualBehaviour)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E3e")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", inappropriateSexualBehaviour))
+                                ) : null,
+                                // E3e - Inappropriate Sexual Behaviour
+                                !string.IsNullOrWhiteSpace(inappropriateSexualBehaviour)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E3e")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", inappropriateSexualBehaviour))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // E3f - Resists Care
-                            !string.IsNullOrWhiteSpace(resistsCare)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "E3f")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", resistsCare))
+                                ) : null,
+                                // E3f - Resists Care
+                                !string.IsNullOrWhiteSpace(resistsCare)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "E3f")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", resistsCare))
+                                        )
                                     )
-                                )
-                            ) : null
+                                ) : null
+                            )
                         ),
                         // Section E END
                         // Section F
                         new XElement(ns + "item",
                             new XElement(ns + "linkId", SafeAttr("value", "F")),
-                            // F1a - Social Relationships — Participation in Long-Standing Activities
-                            !string.IsNullOrWhiteSpace(socialParticipationLongStandingActivities)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F1a")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", socialParticipationLongStandingActivities))
+                             new XElement(ns + "item",
+                                new XElement(ns + "linkId", SafeAttr("value", "F1")),
+                                // F1a - Social Relationships — Participation in Long-Standing Activities
+                                !string.IsNullOrWhiteSpace(socialParticipationLongStandingActivities)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F1a")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", socialParticipationLongStandingActivities))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F1b - Social Relationships — Visit From Long-Standing Relation/Family Member
-                            !string.IsNullOrWhiteSpace(socialVisitLongStandingRelation)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F1b")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", socialVisitLongStandingRelation))
+                                ) : null,
+                                // F1b - Social Relationships — Visit From Long-Standing Relation/Family Member
+                                !string.IsNullOrWhiteSpace(socialVisitLongStandingRelation)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F1b")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", socialVisitLongStandingRelation))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F1c - Social Relationships — Other Interaction With Long-Standing Relation/Family Member
-                            !string.IsNullOrWhiteSpace(socialOtherInteractionLongStandingRelation)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F1c")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", socialOtherInteractionLongStandingRelation))
+                                ) : null,
+                                // F1c - Social Relationships — Other Interaction With Long-Standing Relation/Family Member
+                                !string.IsNullOrWhiteSpace(socialOtherInteractionLongStandingRelation)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F1c")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", socialOtherInteractionLongStandingRelation))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F2a - At Ease Interacting With Others
-                            !string.IsNullOrWhiteSpace(atEaseInteractingWithOthers)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F2a")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", atEaseInteractingWithOthers))
+                                ) : null
+                             ),
+                              new XElement(ns + "item",
+                                new XElement(ns + "linkId", SafeAttr("value", "F2")),
+                                // F2a - At Ease Interacting With Others
+                                !string.IsNullOrWhiteSpace(atEaseInteractingWithOthers)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F2a")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", atEaseInteractingWithOthers))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F2b - At Ease Doing Planned Activities
-                            !string.IsNullOrWhiteSpace(atEaseDoingPlannedActivities)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F2b")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", atEaseDoingPlannedActivities))
+                                ) : null,
+                                // F2b - At Ease Doing Planned Activities
+                                !string.IsNullOrWhiteSpace(atEaseDoingPlannedActivities)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F2b")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", atEaseDoingPlannedActivities))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F2c - Accepts Invitations
-                            !string.IsNullOrWhiteSpace(acceptsInvitations)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F2c")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", acceptsInvitations))
+                                ) : null,
+                                // F2c - Accepts Invitations
+                                !string.IsNullOrWhiteSpace(acceptsInvitations)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F2c")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", acceptsInvitations))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F2d - Pursues Involvement in Activities of Facility/Community
-                            !string.IsNullOrWhiteSpace(pursuesInvolvementActivities)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F2d")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", pursuesInvolvementActivities))
+                                ) : null,
+                                // F2d - Pursues Involvement in Activities of Facility/Community
+                                !string.IsNullOrWhiteSpace(pursuesInvolvementActivities)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F2d")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", pursuesInvolvementActivities))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F2e - Initiates Interactions(s) With Others
-                            !string.IsNullOrWhiteSpace(initiatesInteractionsWithOthers)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F2e")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", initiatesInteractionsWithOthers))
+                                ) : null,
+                                // F2e - Initiates Interactions(s) With Others
+                                !string.IsNullOrWhiteSpace(initiatesInteractionsWithOthers)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F2e")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", initiatesInteractionsWithOthers))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F2f - Reacts Positively to Interactions Initiated by Others
-                            !string.IsNullOrWhiteSpace(reactsPositivelyToInteractions)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F2f")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", reactsPositivelyToInteractions))
+                                ) : null,
+                                // F2f - Reacts Positively to Interactions Initiated by Others
+                                !string.IsNullOrWhiteSpace(reactsPositivelyToInteractions)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F2f")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", reactsPositivelyToInteractions))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F2g - Adjusts Easily to Change in Routine
-                            !string.IsNullOrWhiteSpace(adjustsEasilyToChangeInRoutine)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F2g")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", adjustsEasilyToChangeInRoutine))
+                                ) : null,
+                                // F2g - Adjusts Easily to Change in Routine
+                                !string.IsNullOrWhiteSpace(adjustsEasilyToChangeInRoutine)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F2g")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", adjustsEasilyToChangeInRoutine))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F3a - Conflict With Other Care Recipients
-                            !string.IsNullOrWhiteSpace(conflictWithOtherCareRecipients)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F3a")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", conflictWithOtherCareRecipients))
+                                ) : null
+                            ),
+                               new XElement(ns + "item",
+                                new XElement(ns + "linkId", SafeAttr("value", "F3")),
+                                // F3a - Conflict With Other Care Recipients
+                                !string.IsNullOrWhiteSpace(conflictWithOtherCareRecipients)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F3a")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", conflictWithOtherCareRecipients))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F3b - Conflict With Staff
-                            !string.IsNullOrWhiteSpace(conflictWithStaff)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F3b")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", conflictWithStaff))
+                                ) : null,
+                                // F3b - Conflict With Staff
+                                !string.IsNullOrWhiteSpace(conflictWithStaff)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F3b")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", conflictWithStaff))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F3c - Staff Frustration
-                            !string.IsNullOrWhiteSpace(staffFrustration)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F3c")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", staffFrustration))
+                                ) : null,
+                                // F3c - Staff Frustration
+                                !string.IsNullOrWhiteSpace(staffFrustration)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F3c")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", staffFrustration))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F3d - Family or Friends Overwhelmed
-                            !string.IsNullOrWhiteSpace(familyOrFriendsOverwhelmed)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F3d")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", familyOrFriendsOverwhelmed))
+                                ) : null,
+                                // F3d - Family or Friends Overwhelmed
+                                !string.IsNullOrWhiteSpace(familyOrFriendsOverwhelmed)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F3d")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", familyOrFriendsOverwhelmed))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F3e - Lonely
-                            !string.IsNullOrWhiteSpace(lonely)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F3e")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", lonely))
+                                ) : null,
+                                // F3e - Lonely
+                                !string.IsNullOrWhiteSpace(lonely)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F3e")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", lonely))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F4 - Major Life Stressors
-                            !string.IsNullOrWhiteSpace(majorLifeStressors)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F4")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", majorLifeStressors))
+                                ) : null
+                            ),
+                            new XElement(ns + "item",
+                            new XElement(ns + "linkId", SafeAttr("value", "F4")),
+                                // F4 - Major Life Stressors
+                                !string.IsNullOrWhiteSpace(majorLifeStressors)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F4")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", majorLifeStressors))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F5a - Consistent Positive Outlook
-                            !string.IsNullOrWhiteSpace(consistentPositiveOutlook)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F5a")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", consistentPositiveOutlook))
+                                ) : null
+                            ),
+                            new XElement(ns + "item",
+                            new XElement(ns + "linkId", SafeAttr("value", "F5")),
+                                // F5a - Consistent Positive Outlook
+                                !string.IsNullOrWhiteSpace(consistentPositiveOutlook)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F5a")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", consistentPositiveOutlook))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F5b - Finds Meaning in Day-to-Day Life
-                            !string.IsNullOrWhiteSpace(findsMeaningInDayToDayLife)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F5b")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", findsMeaningInDayToDayLife))
+                                ) : null,
+                                // F5b - Finds Meaning in Day-to-Day Life
+                                !string.IsNullOrWhiteSpace(findsMeaningInDayToDayLife)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F5b")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", findsMeaningInDayToDayLife))
+                                        )
                                     )
-                                )
-                            ) : null,
-                            // F5c - strongAndSupportiveRelationship
-                            !string.IsNullOrWhiteSpace(strongAndSupportiveRelationship)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "F5c")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", strongAndSupportiveRelationship))
+                                ) : null,
+                                // F5c - strongAndSupportiveRelationship
+                                !string.IsNullOrWhiteSpace(strongAndSupportiveRelationship)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "F5c")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", strongAndSupportiveRelationship))
+                                        )
                                     )
-                                )
-                            ) : null
+                                ) : null
+                            )
                         ),
                         // Section F END
                         // Section G
                         new XElement(ns + "item",
-                            new XElement(ns + "linkId", SafeAttr("value", "G")),
-
-                            !string.IsNullOrWhiteSpace(adlBathingPerformance)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G1a")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", adlBathingPerformance))
+                        new XElement(ns + "linkId", SafeAttr("value", "G")),
+                            new XElement(ns + "item",
+                            new XElement(ns + "linkId", SafeAttr("value", "G1")),
+                                !string.IsNullOrWhiteSpace(adlBathingPerformance)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G1a")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", adlBathingPerformance))
+                                        )
                                     )
-                                )
-                            ) : null,
+                                ) : null,
 
-                            !string.IsNullOrWhiteSpace(adlPersonalHygienePerformance)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G1b")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", adlPersonalHygienePerformance))
+                                !string.IsNullOrWhiteSpace(adlPersonalHygienePerformance)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G1b")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", adlPersonalHygienePerformance))
+                                        )
                                     )
-                                )
-                            ) : null,
+                                ) : null,
 
-                            !string.IsNullOrWhiteSpace(adlDressingUpperBodyPerformance)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G1c")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", adlDressingUpperBodyPerformance))
+                                !string.IsNullOrWhiteSpace(adlDressingUpperBodyPerformance)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G1c")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", adlDressingUpperBodyPerformance))
+                                        )
                                     )
-                                )
-                            ) : null,
+                                ) : null,
 
-                            !string.IsNullOrWhiteSpace(adlDressingLowerBodyPerformance)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G1d")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", adlDressingLowerBodyPerformance))
+                                !string.IsNullOrWhiteSpace(adlDressingLowerBodyPerformance)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G1d")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", adlDressingLowerBodyPerformance))
+                                        )
                                     )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(adlWalkingPerformance)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G1e")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", adlWalkingPerformance))
+                                ) : null,
+                                !string.IsNullOrWhiteSpace(adlWalkingPerformance)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G1e")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", adlWalkingPerformance))
+                                        )
                                     )
-                                )
-                            ) : null,
+                                ) : null,
 
-                            !string.IsNullOrWhiteSpace(adlLocomotionPerformance)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G1f")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", adlLocomotionPerformance))
+                                !string.IsNullOrWhiteSpace(adlLocomotionPerformance)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G1f")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", adlLocomotionPerformance))
+                                        )
                                     )
-                                )
-                            ) : null,
+                                ) : null,
 
-                            !string.IsNullOrWhiteSpace(adlTransferToiletPerformance)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G1g")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", adlTransferToiletPerformance))
+                                !string.IsNullOrWhiteSpace(adlTransferToiletPerformance)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G1g")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", adlTransferToiletPerformance))
+                                        )
                                     )
-                                )
-                            ) : null,
+                                ) : null,
 
-                            !string.IsNullOrWhiteSpace(adlToiletUsePerformance)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G1h")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", adlToiletUsePerformance))
+                                !string.IsNullOrWhiteSpace(adlToiletUsePerformance)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G1h")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", adlToiletUsePerformance))
+                                        )
                                     )
-                                )
-                            ) : null,
+                                ) : null,
 
-                            !string.IsNullOrWhiteSpace(adlBedMobilityPerformance)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G1i")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", adlBedMobilityPerformance))
+                                !string.IsNullOrWhiteSpace(adlBedMobilityPerformance)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G1i")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", adlBedMobilityPerformance))
+                                        )
                                     )
-                                )
-                            ) : null,
+                                ) : null,
 
-                            !string.IsNullOrWhiteSpace(adlEatingPerformance)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G1j")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", adlEatingPerformance))
+                                !string.IsNullOrWhiteSpace(adlEatingPerformance)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G1j")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", adlEatingPerformance))
+                                        )
                                     )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(primaryModeOfLocomotion)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G2a")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", primaryModeOfLocomotion))
+                                ) : null
+                            ),
+                            new XElement(ns + "item",
+                            new XElement(ns + "linkId", SafeAttr("value", "G2")),
+                                !string.IsNullOrWhiteSpace(primaryModeOfLocomotion)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G2a")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", primaryModeOfLocomotion))
+                                        )
                                     )
-                                )
-                            ) : null,
+                                ) : null,
 
-                            !string.IsNullOrWhiteSpace(timedWalk)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G2b")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueInteger", SafeAttr("value", timedWalk))
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(distanceWalked)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G2c")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", distanceWalked))
+                                !string.IsNullOrWhiteSpace(timedWalk)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G2b")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueInteger", SafeAttr("value", timedWalk))
                                     )
-                                )
-                            ) : null,
+                                ) : null,
 
-                            !string.IsNullOrWhiteSpace(distanceWheeledSelf)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G2d")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", distanceWheeledSelf))
+                                !string.IsNullOrWhiteSpace(distanceWalked)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G2c")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", distanceWalked))
+                                        )
                                     )
-                                )
-                            ) : null,
+                                ) : null,
 
-                            !string.IsNullOrWhiteSpace(totalHoursExerciseOrPhysicalActivity)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G3a")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", totalHoursExerciseOrPhysicalActivity))
+                                !string.IsNullOrWhiteSpace(distanceWheeledSelf)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G2d")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", distanceWheeledSelf))
+                                        )
                                     )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(activityLevelDaysOutOfHouse)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G3b")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", activityLevelDaysOutOfHouse))
+                                ) : null
+                            ),
+                            new XElement(ns + "item",
+                            new XElement(ns + "linkId", SafeAttr("value", "G3")),
+                                !string.IsNullOrWhiteSpace(totalHoursExerciseOrPhysicalActivity)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G3a")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", totalHoursExerciseOrPhysicalActivity))
+                                        )
                                     )
-                                )
-                            ) : null,
+                                ) : null,
 
-                            !string.IsNullOrWhiteSpace(personBelievesCanImprove)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G4a")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", personBelievesCanImprove))
+                                !string.IsNullOrWhiteSpace(activityLevelDaysOutOfHouse)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G3b")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", activityLevelDaysOutOfHouse))
+                                        )
                                     )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(careProfessionalBelievesCanImprove)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "G4b")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", careProfessionalBelievesCanImprove))
+                                ) : null
+                            ),
+                            new XElement(ns + "item",
+                            new XElement(ns + "linkId", SafeAttr("value", "G4")),
+                                !string.IsNullOrWhiteSpace(personBelievesCanImprove)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G4a")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", personBelievesCanImprove))
+                                        )
                                     )
-                                )
-                            ) : null,
+                                ) : null,
 
+                                !string.IsNullOrWhiteSpace(careProfessionalBelievesCanImprove)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "G4b")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", careProfessionalBelievesCanImprove))
+                                        )
+                                    )
+                                ) : null
+                            ),
                             !string.IsNullOrWhiteSpace(changeInAdlStatus)
                             ? new XElement(ns + "item",
                                 new XElement(ns + "linkId", SafeAttr("value", "G5")),
@@ -1906,7 +1936,7 @@ namespace IFIC.FileIngestor.Transformers
                                         new XElement(ns + "code", SafeAttr("value", changeInAdlStatus))
                                     )
                                 )
-                                ) : null
+                            ) : null
                         ),
                         // Section G END
                         // Section H
@@ -3582,11 +3612,15 @@ namespace IFIC.FileIngestor.Transformers
                                 new XElement(ns + "item",
                                 new XElement(ns + "linkId", SafeAttr("value", $"S2")),
                                     new XElement(ns + "answer",
-                                        new XElement(ns + "ValueDate", SafeAttr("value", assessmentSignedAsComplete))
+                                        new XElement(ns + "valueDate", SafeAttr("value", assessmentSignedAsComplete))
                                     )
                                 )
                                 )
                         )
+                    ),
+                    new XElement(ns + "request",
+                        new XElement(ns + "method", SafeAttr("value", "POST")),
+                        new XElement(ns + "url", new XAttribute("value", $"urn:uuid:{questionnaireResponseId}"))
                     )
                 );
 
@@ -3625,11 +3659,7 @@ namespace IFIC.FileIngestor.Transformers
                     parsedFile,
                     patientId,
                     encounterId,
-                    questionnaireResponseId),
-                new XElement(ns + "request",
-                    new XElement(ns + "method", SafeAttr("value", "POST")),
-                    new XElement(ns + "url", new XAttribute("value", $"urn:uuid:{questionnaireResponseId}"))
-                )
+                    questionnaireResponseId)
             );
         }
 

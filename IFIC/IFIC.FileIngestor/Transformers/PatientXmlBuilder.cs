@@ -20,7 +20,7 @@ namespace IFIC.FileIngestor.Transformers
     public class PatientXmlBuilder
     {
         private static readonly XNamespace ns = "http://hl7.org/fhir";
-       
+
         public XElement BuildPatientBundleHeader(
             ParsedFlatFile parsedFile,
             string bundleId,
@@ -29,7 +29,7 @@ namespace IFIC.FileIngestor.Transformers
             // Generate unique IDs for resources
             bundleId = string.IsNullOrEmpty(bundleId) ? Guid.NewGuid().ToString() : bundleId;
             patientId = string.IsNullOrEmpty(patientId) ? Guid.NewGuid().ToString() : patientId;
-            
+
             // Create Bundle document
             var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
                 new XElement(ns + "id", new XAttribute("value", bundleId)),
@@ -46,7 +46,7 @@ namespace IFIC.FileIngestor.Transformers
         /// <param name="parsedFile"></param>
         /// <returns></returns>
         public XElement BuildPatientEntry(
-            ParsedFlatFile parsedFile, 
+            ParsedFlatFile parsedFile,
             string patientId)
         {
             // Extract patient values from flat file
@@ -92,17 +92,7 @@ namespace IFIC.FileIngestor.Transformers
                                     new XElement(ns + "system", new XAttribute("value", "https://fhir.infoway-inforoute.ca/NamingSystem/ca-on-patient-hcn")),
                                     new XElement(ns + "value", new XAttribute("value", healthCardNumber))
                                 )
-                                : new XElement(ns + "identifier",
-                                    new XElement(ns + "extension", new XAttribute("url", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-data-absent-reason"),
-                                        new XElement(ns + "ValueCode", new XAttribute("value", "unknown"))
-                                    ),
-                                        new XElement(ns + "type",
-                                        new XElement(ns + "coding",
-                                            new XElement(ns + "system", new XAttribute("value", "http://hl7.org/fhir/v2/0203")),
-                                            new XElement(ns + "code", new XAttribute("value", "JHN"))
-                                        )
-                                    )
-                                ),
+                                : null,
 
                             // Identifier - case record number
                             !string.IsNullOrWhiteSpace(caseId)
@@ -143,12 +133,13 @@ namespace IFIC.FileIngestor.Transformers
                                 : null,
 
                             // Facility/Agency identifier
-                            new XElement(ns + "managingOrganization",
+                            !string.IsNullOrWhiteSpace(orgId)
+                            ? new XElement(ns + "managingOrganization",
                                 new XElement(ns + "identifier",
                                     new XElement(ns + "system", new XAttribute("value", "http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier")),
                                     new XElement(ns + "value", new XAttribute("value", orgId))
                                 )
-                            )
+                              ) : null
                         )
                     ),
                     new XElement(ns + "request",
@@ -173,8 +164,8 @@ namespace IFIC.FileIngestor.Transformers
             }
 
             XElement bundle = BuildPatientBundleHeader(
-                parsedFile, 
-                null, 
+                parsedFile,
+                null,
                 null);
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
         }
