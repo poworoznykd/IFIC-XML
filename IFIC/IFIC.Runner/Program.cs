@@ -75,7 +75,7 @@ namespace IFIC.Runner
                 else
                 {
                     // Default mode: Process flat file → Build Bundle → Submit
-                    string flatFilePath = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SimpleFlatFiles", "Simple-Bundle-No-Questions.dat");
+                    string flatFilePath = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SimpleFlatFiles", "Simple-Bundle.dat");
 
                     logger.LogInformation("Processing flat file: {File}", flatFilePath);
                     File.AppendAllText(logFile, $"Processing flat file: {flatFilePath}{Environment.NewLine}");

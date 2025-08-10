@@ -882,13 +882,13 @@ namespace IFIC.FileIngestor.Transformers
                         // < !--Patient ID-- >
                         new XElement(ns + "subject",
                             new XElement(ns + "reference",
-                                SafeAttr("value", $"Patient/{patientId}")
+                                SafeAttr("value", $"urn:uuid:{patientId}")
                             )
                         ),
                             //< !--Encounter ID-- >
                             new XElement(ns + "context",
                             new XElement(ns + "reference",
-                                SafeAttr("value", $"Encounter/{encounterId}")
+                                SafeAttr("value", $"urn:uuid:{encounterId}")
                             )
                         ),
                         // Section A
@@ -926,11 +926,11 @@ namespace IFIC.FileIngestor.Transformers
                             ) : null,
                             !string.IsNullOrWhiteSpace(primaryCareGoal)
                             ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "A10g")),
+                                new XElement(ns + "linkId", SafeAttr("value", "A10")),
 
                                 // Primary Care Goal (always added if primaryCareGoal is not empty)
                                 new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "A10")),
+                                    new XElement(ns + "linkId", SafeAttr("value", "A10g")),
                                     new XElement(ns + "answer",
                                         new XElement(ns + "valueString", SafeAttr("value", primaryCareGoal))
                                     )
@@ -1692,19 +1692,16 @@ namespace IFIC.FileIngestor.Transformers
                                     )
                                 ) : null
                             ),
-                            new XElement(ns + "item",
-                            new XElement(ns + "linkId", SafeAttr("value", "F4")),
-                                // F4 - Major Life Stressors
-                                !string.IsNullOrWhiteSpace(majorLifeStressors)
-                                ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "F4")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding",
-                                            new XElement(ns + "code", SafeAttr("value", majorLifeStressors))
-                                        )
+                            // F4 - Major Life Stressors
+                            !string.IsNullOrWhiteSpace(majorLifeStressors)
+                            ? new XElement(ns + "item",
+                                new XElement(ns + "linkId", SafeAttr("value", "F4")),
+                                new XElement(ns + "answer",
+                                    new XElement(ns + "valueCoding",
+                                        new XElement(ns + "code", SafeAttr("value", majorLifeStressors))
                                     )
-                                ) : null
-                            ),
+                                )
+                            ) : null,
                             new XElement(ns + "item",
                             new XElement(ns + "linkId", SafeAttr("value", "F5")),
                                 // F5a - Consistent Positive Outlook
@@ -1986,241 +1983,243 @@ namespace IFIC.FileIngestor.Transformers
                         // Section H END
                         // Section I
                         new XElement(ns + "item",
-                            new XElement(ns + "linkId", SafeAttr("value", "I")),
-
-                            !string.IsNullOrWhiteSpace(hipFracture)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1a")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", hipFracture))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(otherFracture)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1b")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", otherFracture))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(alzheimers)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1c")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", alzheimers))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(otherDementia)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1d")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", otherDementia))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(hemiplegia)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1e")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", hemiplegia))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(multipleSclerosis)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1f")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", multipleSclerosis))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(paraplegia)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1g")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", paraplegia))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(parkinsons)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1h")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", parkinsons))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(quadriplegia)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1i")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", quadriplegia))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(strokeCva)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1j")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", strokeCva))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(coronaryHeartDisease)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1k")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", coronaryHeartDisease))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(congestiveHeartFailure)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1m")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", congestiveHeartFailure))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(copd)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1l")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", copd))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(anxiety)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1n")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", anxiety))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(bipolar)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1o")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", bipolar))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(depression)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1p")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", depression))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(schizophrenia)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1q")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", schizophrenia))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(pneumonia)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1r")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", pneumonia))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(urinaryTractInfection)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1s")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", urinaryTractInfection))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(cancer)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1t")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", cancer))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(diabetesMellitus)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I1u")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", diabetesMellitus))
-                                    )
-                                )
-                            ) : null,
-
-                            !string.IsNullOrWhiteSpace(diseaseCode) ||
-                            !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "I2")),
-                                // I2aa - Disease Code
-                                !string.IsNullOrWhiteSpace(diseaseCode)
+                        new XElement(ns + "linkId", SafeAttr("value", "I")),
+                            new XElement(ns + "item",
+                            new XElement(ns + "linkId", SafeAttr("value", "I1")),
+                                !string.IsNullOrWhiteSpace(hipFracture)
                                 ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2aa")),
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1a")),
                                     new XElement(ns + "answer",
                                         new XElement(ns + "valueCoding",
-                                            new XElement(ns + "code", SafeAttr("value", diseaseCode))
+                                            new XElement(ns + "code", SafeAttr("value", hipFracture))
                                         )
                                     )
                                 ) : null,
-                                // I2ab 
-                                !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10)
+
+                                !string.IsNullOrWhiteSpace(otherFracture)
                                 ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2ab")),
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1b")),
                                     new XElement(ns + "answer",
-                                        new XElement(ns + "valueString", SafeAttr("value", diseaseDiagnosisICD10))
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", otherFracture))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(alzheimers)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1c")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", alzheimers))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(otherDementia)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1d")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", otherDementia))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(hemiplegia)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1e")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", hemiplegia))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(multipleSclerosis)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1f")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", multipleSclerosis))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(paraplegia)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1g")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", paraplegia))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(parkinsons)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1h")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", parkinsons))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(quadriplegia)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1i")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", quadriplegia))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(strokeCva)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1j")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", strokeCva))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(coronaryHeartDisease)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1k")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", coronaryHeartDisease))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(copd)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1l")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", copd))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(congestiveHeartFailure)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1m")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", congestiveHeartFailure))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(anxiety)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1n")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", anxiety))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(bipolar)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1o")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", bipolar))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(depression)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1p")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", depression))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(schizophrenia)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1q")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", schizophrenia))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(pneumonia)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1r")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", pneumonia))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(urinaryTractInfection)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1s")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", urinaryTractInfection))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(cancer)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1t")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", cancer))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(diabetesMellitus)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1u")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", diabetesMellitus))
+                                        )
                                     )
                                 ) : null
-                            ) : null,
+                            ),
+                            new XElement(ns + "item",
+                            new XElement(ns + "linkId", SafeAttr("value", "I2")),
+                                new XElement(ns + "item",
+                                new XElement(ns + "linkId", SafeAttr("value", "I2a")),
+                                    // I2aa - Disease Code
+                                    !string.IsNullOrWhiteSpace(diseaseCode)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2aa")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", SafeAttr("value", diseaseCode))
+                                            )
+                                        )
+                                    ) : null,
+                                    // I2ab 
+                                    !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2ab")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueString", SafeAttr("value", diseaseDiagnosisICD10))
+                                        )
+                                    ) : null
+                                )
+                            ),
                             !string.IsNullOrWhiteSpace(diseaseCode_2) ||
                             !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10_2)
                             ? new XElement(ns + "item",
@@ -2543,27 +2542,6 @@ namespace IFIC.FileIngestor.Transformers
                                     )
                                 )
                             ),
-                            !string.IsNullOrWhiteSpace(dyspnea) ||
-                            !string.IsNullOrWhiteSpace(fatigue)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", "J3")),
-                                new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "J3a")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding",
-                                            new XElement(ns + "code", SafeAttr("value", dyspnea))
-                                        )
-                                    )
-                                ),
-                                new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "J3b")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding",
-                                            new XElement(ns + "code", SafeAttr("value", fatigue))
-                                        )
-                                    )
-                                )
-                            ) : null,
                             new XElement(ns + "item",
                                 new XElement(ns + "linkId", SafeAttr("value", "J3")),
                                 new XElement(ns + "answer",
@@ -2576,7 +2554,7 @@ namespace IFIC.FileIngestor.Transformers
                                 new XElement(ns + "linkId", SafeAttr("value", "J4")),
                                 new XElement(ns + "answer",
                                     new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", dyspnea))
+                                        new XElement(ns + "code", SafeAttr("value", fatigue))
                                     )
                                 )
                             ),
@@ -3298,39 +3276,45 @@ namespace IFIC.FileIngestor.Transformers
                             new XElement(ns + "item",
                             new XElement(ns + "linkId", SafeAttr("value", "O3")),
                                 new XElement(ns + "item",
+                                new XElement(ns + "linkId", SafeAttr("value", "O3aa")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueInteger", SafeAttr("value", physicalTherapyScheduled))
+                                    )
+                                ),
+                                new XElement(ns + "item",
                                 new XElement(ns + "linkId", SafeAttr("value", "O3ab")),
                                     new XElement(ns + "answer",
                                         new XElement(ns + "valueInteger", SafeAttr("value", physicalTherapyDays))
                                     )
                                 ),
                                 new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "O3ac")),
+                                new XElement(ns + "linkId", SafeAttr("value", "O3ac")),
                                     new XElement(ns + "answer",
                                         new XElement(ns + "valueInteger", SafeAttr("value", physicalTherapyMinutes))
-                                    )
-                                ),
-                                new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "O3aa")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueInteger", SafeAttr("value", physicalTherapyScheduled))
-                                    )
-                                ),
-                                new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "O3bb")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueInteger", SafeAttr("value", occupationalTherapyDays))
-                                    )
-                                ),
-                                new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "O3bc")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueInteger", SafeAttr("value", occupationalTherapyMinutes))
                                     )
                                 ),
                                 new XElement(ns + "item",
                                     new XElement(ns + "linkId", SafeAttr("value", "O3ba")),
                                     new XElement(ns + "answer",
                                         new XElement(ns + "valueInteger", SafeAttr("value", occupationalTherapyScheduled))
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                new XElement(ns + "linkId", SafeAttr("value", "O3bb")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueInteger", SafeAttr("value", occupationalTherapyDays))
+                                    )
+                                ),
+                                new XElement(ns + "item",
+                                new XElement(ns + "linkId", SafeAttr("value", "O3bc")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueInteger", SafeAttr("value", occupationalTherapyMinutes))
+                                    )
+                                ),
+                                 new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "O3ca")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueInteger", SafeAttr("value", speechLanguageTherapyScheduled))
                                     )
                                 ),
                                 new XElement(ns + "item",
@@ -3345,10 +3329,10 @@ namespace IFIC.FileIngestor.Transformers
                                         new XElement(ns + "valueInteger", SafeAttr("value", speechLanguageTherapyMinutes))
                                     )
                                 ),
-                                new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "O3ca")),
+                               new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "O3da")),
                                     new XElement(ns + "answer",
-                                        new XElement(ns + "valueInteger", SafeAttr("value", speechLanguageTherapyScheduled))
+                                        new XElement(ns + "valueInteger", SafeAttr("value", respiratoryTherapyScheduled))
                                     )
                                 ),
                                 new XElement(ns + "item",
@@ -3364,9 +3348,9 @@ namespace IFIC.FileIngestor.Transformers
                                     )
                                 ),
                                 new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "O3da")),
+                                    new XElement(ns + "linkId", SafeAttr("value", "O3ea")),
                                     new XElement(ns + "answer",
-                                        new XElement(ns + "valueInteger", SafeAttr("value", respiratoryTherapyScheduled))
+                                        new XElement(ns + "valueInteger", SafeAttr("value", functionalRehabilitationScheduled))
                                     )
                                 ),
                                 new XElement(ns + "item",
@@ -3382,9 +3366,9 @@ namespace IFIC.FileIngestor.Transformers
                                     )
                                 ),
                                 new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "O3ea")),
+                                    new XElement(ns + "linkId", SafeAttr("value", "O3fa")),
                                     new XElement(ns + "answer",
-                                        new XElement(ns + "valueInteger", SafeAttr("value", functionalRehabilitationScheduled))
+                                        new XElement(ns + "valueInteger", SafeAttr("value", psychologicalTherapiesScheduled))
                                     )
                                 ),
                                 new XElement(ns + "item",
@@ -3400,9 +3384,9 @@ namespace IFIC.FileIngestor.Transformers
                                     )
                                 ),
                                 new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "O3fa")),
+                                    new XElement(ns + "linkId", SafeAttr("value", "O3ga")),
                                     new XElement(ns + "answer",
-                                        new XElement(ns + "valueInteger", SafeAttr("value", psychologicalTherapiesScheduled))
+                                        new XElement(ns + "valueInteger", SafeAttr("value", recreationTherapyScheduled))
                                     )
                                 ),
                                 new XElement(ns + "item",
@@ -3415,12 +3399,6 @@ namespace IFIC.FileIngestor.Transformers
                                     new XElement(ns + "linkId", SafeAttr("value", "O3gc")),
                                     new XElement(ns + "answer",
                                         new XElement(ns + "valueInteger", SafeAttr("value", recreationTherapyMinutes))
-                                    )
-                                ),
-                                new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "O3ga")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueInteger", SafeAttr("value", recreationTherapyScheduled))
                                     )
                                 )
                             ),
