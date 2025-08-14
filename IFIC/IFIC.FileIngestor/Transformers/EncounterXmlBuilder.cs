@@ -37,7 +37,7 @@ namespace IFIC.FileIngestor.Transformers
                     coverageContainedElements.Add(
                         new XElement(ns + "contained",
                             new XElement(ns + "Coverage",
-                                new XElement(ns + "id", new XAttribute("value", $"coverage-{code}")),
+                                new XElement(ns + "id", new XAttribute("value", $"{code}")),
                                 new XElement(ns + "meta",
                                     new XElement(ns + "profile", new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-coverage"))
                                 ),
@@ -94,13 +94,12 @@ namespace IFIC.FileIngestor.Transformers
                                 new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-encounter")
                             )
                         ),
-
                         // contained - Payment Source
                         // Include Account only if at least one coverage code has a value
                         (coverageCodes.Any(code => parsedFile.Encounter.ContainsKey(code) && !string.IsNullOrWhiteSpace(parsedFile.Encounter[code]))
                             ? new XElement(ns + "contained",
                                 new XElement(ns + "Account",
-                                    new XElement(ns + "id", new XAttribute("value", "paymentSources")),
+                                    new XElement(ns + "id", new XAttribute("value", "paymentSource")),
                                     new XElement(ns + "meta",
                                         new XElement(ns + "profile", new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-account"))
                                     ),
@@ -119,7 +118,8 @@ namespace IFIC.FileIngestor.Transformers
                                 )
                             )
                             : null),
-                            CreateICodeA7Elements(parsedFile),
+                          CreateICodeA7Elements(parsedFile),
+
                         // contained - admitted from
                         !string.IsNullOrWhiteSpace(admittedFrom)
                         ? new XElement(ns + "contained",
@@ -336,68 +336,71 @@ namespace IFIC.FileIngestor.Transformers
                             ) : null
                         ),
             #region Commented Code 3
-                            //new XElement(ns + "Account",
-                            //    new XElement(ns + "id",
-                            //        new XAttribute("value", "#paymentSource")
-                            //    )
-                            //),
+                            new XElement(ns + "account",
+                                new XElement(ns + "reference",
+                                    new XAttribute("value", "#paymentSource")
+                                )
+                            ),
 
-                            ////Hospitalization
-                            //!string.IsNullOrWhiteSpace(admittedFrom)
-                            //? new XElement(ns + "hospitalization",
-                            //    new XElement(ns + "origin",
-                            //        new XElement(ns + "reference",
-                            //            new XAttribute("value", "#admittedFrom")
-                            //        )
-                            //    ),
-                            //    new XElement(ns + "reAdmission",
-                            //        new XElement(ns + "coding",
-                            //            new XAttribute("code", 1)//TODO - hard coded? (1 = Yes, 2 = No, 3 = Unknown?)
-                            //        )
-                            //    ),
-                            //    new XElement(ns + "destination",
-                            //            new XAttribute("value", "#dischargedTo")
-                            //    )
-                            //)
-                            //: null,
+                           //Hospitalization
+                           !string.IsNullOrWhiteSpace(admittedFrom) ||
+                           !string.IsNullOrWhiteSpace(dischargedToFacilityNumber)
+                            ?new XElement(ns + "hospitalization",
+                                !string.IsNullOrWhiteSpace(admittedFrom)
+                                ?new XElement(ns + "origin",
+                                    new XElement(ns + "reference",
+                                        new XAttribute("value", "#admittedFrom")
+                                    )
+                                ) : null,
+                                //new XElement(ns + "reAdmission",
+                                //    new XElement(ns + "coding",
+                                //        new XAttribute("code", 1)//TODO - hard coded? (1 = Yes, 2 = No, 3 = Unknown?)
+                                //    )
+                                //),
+                                !string.IsNullOrWhiteSpace(dischargedToFacilityNumber)
+                                ?new XElement(ns + "destination",
+                                        new XAttribute("value", "#dischargedTo")
+                                ) : null
+                            )
+                            : null,
 
-                            ////MIS Function Centre
-                            //!string.IsNullOrWhiteSpace(stayStartDate) && !string.IsNullOrWhiteSpace(stayEndDate)
-                            //? new XElement(ns + "location",
-                            //    new XElement(ns + "location",
-                            //        new XElement(ns + "reference",
-                            //            new XAttribute("value", "#misCode")
-                            //        )
-                            //    ),
-                            //    new XElement(ns + "period",
-                            //        new XElement(ns + "start",
-                            //            new XAttribute("value", stayStartDate)
-                            //        ),
-                            //        new XElement(ns + "end",
-                            //            new XAttribute("value", stayEndDate)
-                            //        )
-                            //    )
-                            //)
-                            //: null,
+                        ////MIS Function Centre
+                        //!string.IsNullOrWhiteSpace(stayStartDate) && !string.IsNullOrWhiteSpace(stayEndDate)
+                        //? new XElement(ns + "location",
+                        //    new XElement(ns + "location",
+                        //        new XElement(ns + "reference",
+                        //            new XAttribute("value", "#misCode")
+                        //        )
+                        //    ),
+                        //    new XElement(ns + "period",
+                        //        new XElement(ns + "start",
+                        //            new XAttribute("value", stayStartDate)
+                        //        ),
+                        //        new XElement(ns + "end",
+                        //            new XAttribute("value", stayEndDate)
+                        //        )
+                        //    )
+                        //)
+                        //: null,
 
-                            ////Bed Type
-                            //!string.IsNullOrWhiteSpace(stayStartDate) && !string.IsNullOrWhiteSpace(stayEndDate)
-                            //? new XElement(ns + "location",
-                            //    new XElement(ns + "location",
-                            //        new XElement(ns + "reference",
-                            //            new XAttribute("value", "#bedType")
-                            //        )
-                            //    ),
-                            //    new XElement(ns + "period",
-                            //        new XElement(ns + "start",
-                            //            new XAttribute("value", stayStartDate)
-                            //        ),
-                            //        new XElement(ns + "end",
-                            //            new XAttribute("value", stayEndDate)
-                            //        )
-                            //    )
-                            //)
-                            //: null,
+                        ////Bed Type
+                        //!string.IsNullOrWhiteSpace(stayStartDate) && !string.IsNullOrWhiteSpace(stayEndDate)
+                        //? new XElement(ns + "location",
+                        //    new XElement(ns + "location",
+                        //        new XElement(ns + "reference",
+                        //            new XAttribute("value", "#bedType")
+                        //        )
+                        //    ),
+                        //    new XElement(ns + "period",
+                        //        new XElement(ns + "start",
+                        //            new XAttribute("value", stayStartDate)
+                        //        ),
+                        //        new XElement(ns + "end",
+                        //            new XAttribute("value", stayEndDate)
+                        //        )
+                        //    )
+                        //)
+                        //: null,
             #endregion
                         // Faciltiy/agnecy identifier this encounter is related to
                         !string.IsNullOrWhiteSpace(orgId)

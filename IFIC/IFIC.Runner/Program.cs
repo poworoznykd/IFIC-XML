@@ -20,23 +20,29 @@ using IFIC.ApiClient;
 using IFIC.Auth;
 using IFIC.FileIngestor.Parsers;
 using IFIC.FileIngestor.Transformers;
+using System.Text;
+using System.Xml.Linq;
+using System.Xml;
 
 namespace IFIC.Runner
 {
     public class Program
     {
+        private static readonly string logFile;
+
         /// <summary>
-        /// Application entry point. Configures DI, logging, and runs the processing pipeline.
+        /// Application entry point. Sets up DI, logging, and executes the submission workflow.
         /// </summary>
-        /// <param name="args">Command-line arguments (--simulate optional)</param>
         public static async Task Main(string[] args)
         {
             Console.WriteLine("===== IFIC Runner Starting =====");
 
+            // Build the host with configured services and logging
             IHost host = CreateHostBuilder(args).Build();
             var logger = host.Services.GetRequiredService<ILogger<Program>>();
             var apiClient = host.Services.GetRequiredService<IApiClient>();
-            // Resolve paths
+
+            // Prepare output and log directories
             string baseDir = AppContext.BaseDirectory;
             string outputFolder = Path.Combine(baseDir, "Output");
             Directory.CreateDirectory(outputFolder);
@@ -44,14 +50,15 @@ namespace IFIC.Runner
             string logFolder = Path.Combine(baseDir, "Logs");
             Directory.CreateDirectory(logFolder);
 
+            // Timestamp for file naming
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             string logFile = Path.Combine(logFolder, $"runlog_{timestamp}.txt");
 
             try
             {
+                // Simulation Mode: Send an existing XML file
                 if (args.Length >= 2 && args[0].Equals("--simulate", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Simulation mode
                     string xmlFileName = args[1];
                     string sampleFolder = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SampleXML");
                     string xmlFilePath = Path.Combine(sampleFolder, xmlFileName);
@@ -66,7 +73,14 @@ namespace IFIC.Runner
                         return;
                     }
 
+                    // Read XML and ensure declaration
                     string xmlContent = await File.ReadAllTextAsync(xmlFilePath);
+                    if (!xmlContent.TrimStart().StartsWith("<?xml"))
+                    {
+                        xmlContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + xmlContent;
+                    }
+
+                    SaveWithDeclaration(xmlFilePath, xmlContent); // Save with guaranteed XML declaration
                     await apiClient.SubmitXmlAsync(xmlContent);
 
                     logger.LogInformation("Simulation completed successfully.");
@@ -74,9 +88,10 @@ namespace IFIC.Runner
                 }
                 else
                 {
-                    // Default mode: Process flat file → Build Bundle → Submit
-                    string flatFilePath = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SimpleFlatFiles", "Simple-Bundle.dat");
+                    // Default Mode: Process flat file → Build bundle → Save + Submit
 
+                    // Path to flat file
+                    string flatFilePath = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SimpleFlatFiles", "Simple-Bundle.dat");
                     logger.LogInformation("Processing flat file: {File}", flatFilePath);
                     File.AppendAllText(logFile, $"Processing flat file: {flatFilePath}{Environment.NewLine}");
 
@@ -87,74 +102,86 @@ namespace IFIC.Runner
                         return;
                     }
 
-                    // Parse flat file
+                    // Parse the flat file into structured data
                     var parser = new FlatFileParser();
                     var parsedFile = parser.Parse(flatFilePath);
 
-                    var patientBuilder = new PatientXmlBuilder();
-                    var encounterBuilder = new EncounterXmlBuilder();
-                    var questionnaireResponseBuilder = new QuestionnaireResponseBuilder();
+                    // Build patient, encounter, and questionnaire bundles if applicable
+                    var patientBuilder = parsedFile.Patient.Any() ? new PatientXmlBuilder() : null;
+                    var encounterBuilder = parsedFile.Encounter.Any() ? new EncounterXmlBuilder() : null;
+                    var questionnaireResponseBuilder = parsedFile.AssessmentSections.Any() ? new QuestionnaireResponseBuilder() : null;
 
-                    if (parsedFile.Patient.Any())
-                    {
-                        // Build FHIR Patient Bundle
-                        var patientDoc = patientBuilder.BuildPatientBundle(parsedFile);
-                    }
-                    if(parsedFile.Encounter.Any())
-                    {
-                        // Build FHIR Encounter Bundle
-                        var encounterDoc = encounterBuilder.BuildEncounterBundle(parsedFile);
-                    }
-                    if (parsedFile.AssessmentSections.Any())
-                    {
-                        // Build FHIR QuestionnaireResponse Bundle
-                        var questionnaireResponseDoc = questionnaireResponseBuilder.BuildQuestionnaireResponseBundle(parsedFile);
-                    }
-                    if (!parsedFile.Patient.Any())
-                    {
-                        patientBuilder = null;
-                    }
-                    if (!parsedFile.Encounter.Any())
-                    {
-                        encounterBuilder = null;
-                    }
-                    if (!parsedFile.AssessmentSections.Any())
-                    {
-                        questionnaireResponseBuilder = null;
-                    }
+                    patientBuilder?.BuildPatientBundle(parsedFile);
+                    encounterBuilder?.BuildEncounterBundle(parsedFile);
+                    questionnaireResponseBuilder?.BuildQuestionnaireResponseBundle(parsedFile);
 
+                    // Build the final full bundle
                     var bundleBuilder = new BundleXmlBuilder();
                     var bundleResponseDoc = bundleBuilder.BuildFullBundle(
                         parsedFile,
                         patientBuilder,
                         encounterBuilder,
-                        questionnaireResponseBuilder);
+                        questionnaireResponseBuilder
+                    );
 
-                    // Save XML locally
+                    // ✅ CHANGE: Explicitly set XML declaration before converting to string
+                    bundleResponseDoc.Declaration = new XDeclaration("1.0", "UTF-8", null);
+
+                    // Get the XML string (will now include declaration)
+                    string xmlContentForSave = bundleResponseDoc.ToString();
+
+                    // Save final bundle to disk
                     string outputPath = Path.Combine(outputFolder, $"fhir_bundle_{timestamp}.xml");
-                    await File.WriteAllTextAsync(outputPath, bundleResponseDoc.ToString());
+                    SaveWithDeclaration(outputPath, xmlContentForSave);
                     logger.LogInformation("FHIR Bundle saved to: {OutputPath}", outputPath);
                     File.AppendAllText(logFile, $"FHIR Bundle saved: {outputPath}{Environment.NewLine}");
 
-                    // Submit to CIHI
-                    string xmlContentForSubmit = bundleResponseDoc.ToString();
+                    // Save probe copy for record
+                    var probePath = Path.Combine(outputFolder, $"_probe_sent_{timestamp}.xml");
+                    SaveWithDeclaration(probePath, xmlContentForSave);
+
+                    // Submit bundle to CIHI
                     logger.LogInformation("Submitting bundle to CIHI...");
                     File.AppendAllText(logFile, $"Submitting bundle at: {DateTime.Now}{Environment.NewLine}");
-                    await apiClient.SubmitXmlAsync(xmlContentForSubmit);
+                    await apiClient.SubmitXmlAsync(xmlContentForSave);
 
                     logger.LogInformation("Submission completed successfully.");
                     File.AppendAllText(logFile, "Submission completed successfully." + Environment.NewLine);
+                    if (IRRSApiClient.clientMessage != "")
+                    {
+                        File.AppendAllText(logFile, IRRSApiClient.clientMessage + Environment.NewLine);
+                    }
                 }
             }
             catch (Exception ex)
             {
+                // Log unexpected errors
                 File.AppendAllText(logFile, ex.ToString());
                 logger.LogError(ex, "An error occurred during processing.");
             }
         }
 
         /// <summary>
-        /// Configures the host builder for dependency injection and logging.
+        /// Saves XML to a file, ensuring that the XML declaration exists and is UTF-8 encoded.
+        /// </summary>
+        static void SaveWithDeclaration(string xmlPath, string xmlContent)
+        {
+            var doc = XDocument.Parse(xmlContent, LoadOptions.PreserveWhitespace);
+            doc.Declaration ??= new XDeclaration("1.0", "UTF-8", null);
+
+            var settings = new XmlWriterSettings
+            {
+                Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                Indent = true,
+                OmitXmlDeclaration = false
+            };
+
+            using var writer = XmlWriter.Create(xmlPath, settings);
+            doc.Save(writer);
+        }
+
+        /// <summary>
+        /// Configures the application host, including DI, configuration, and logging.
         /// </summary>
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)

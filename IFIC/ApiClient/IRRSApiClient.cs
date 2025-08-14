@@ -30,7 +30,7 @@ namespace IFIC.ApiClient
         private readonly IAuthManager authManager;
         private readonly ILogger<IRRSApiClient> logger;
         private readonly string endpointUrl;
-
+        public static string clientMessage = "";
         /// <summary>
         /// Initializes a new instance of the IRRSApiClient class.
         /// </summary>
@@ -61,13 +61,44 @@ namespace IFIC.ApiClient
         /// <exception cref="HttpRequestException">Thrown if the submission fails.</exception>
         public async Task SubmitXmlAsync(string xmlContent)
         {
+            // Ensure XML declaration is present
+            if (!xmlContent.TrimStart().StartsWith("<?xml"))
+            {
+                xmlContent = "<?xml version='1.0' encoding='UTF-8'?>\n" + xmlContent;
+            }
+
             // Get OAuth2 access token
             var token = await authManager.GetAccessTokenAsync();
 
             // Build HTTP request
             var request = new HttpRequestMessage(HttpMethod.Post, endpointUrl);
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var trimmed = xmlContent.TrimStart();
+            if (trimmed.StartsWith("\"") || trimmed.StartsWith("'"))
+            {
+                // If someone upstream ever serialized the XML into JSON by mistake,
+                // strip a single wrapping pair of quotes (defensive fix) and log it.
+                var unwrapped = trimmed.Trim();
+                if ((unwrapped.StartsWith("\"") && unwrapped.EndsWith("\"")) ||
+                    (unwrapped.StartsWith("'") && unwrapped.EndsWith("'")))
+                {
+                    logger.LogWarning("XML appeared to be wrapped in quotes; unwrapping defensively.");
+                    xmlContent = unwrapped.Substring(1, unwrapped.Length - 2);
+                }
+            }
+            // Optional: sanity log (first chars must be '<')
+            if (!xmlContent.TrimStart().StartsWith("<"))
+            {
+                logger.LogWarning("XML does not start with '<'. First 60 chars: {Prefix}", xmlContent.Substring(0, Math.Min(60, xmlContent.Length)));
+            }
+
+
             request.Content = new StringContent(xmlContent, Encoding.UTF8, "application/fhir+xml");
+            // In IRRSApiClient.SubmitXmlAsync, after creating 'request'
+            request.Headers.Accept.Clear();
+            request.Headers.Accept.ParseAdd("application/fhir+xml");
+
 
             logger.LogInformation("Sending XML to CIHI endpoint...");
             Console.WriteLine("Sending XML to CIHI endpoint...");
@@ -104,6 +135,8 @@ namespace IFIC.ApiClient
             // Success
             logger.LogInformation("Submission successful. CIHI Response: {Response}", responseContent);
             Console.WriteLine("Submission successful.");
+            clientMessage = $"CIHI submission: {"Transaction ID: " + transactionId + " "} {response.StatusCode} - {responseContent}";
         }
+
     }
 }

@@ -29,30 +29,12 @@ namespace IFIC.FileIngestor.Transformers
             string encounterId = Guid.NewGuid().ToString();
             string questionnaireResponseId = Guid.NewGuid().ToString();
 
-
-            //// Create Bundle document
-            //var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
-            //    new XElement(ns + "id", new XAttribute("value", bundleId)),
-            //    new XElement(ns + "type", new XAttribute("value", "transaction")),
-            //    encounterXmlBuilder.BuildEncounterEntry(
-            //        parsedFile, 
-            //        patientId,
-            //        encounterId),
-            //    questionnaireResponseBuilder.BuildQuestionnaireResponseEntry(
-            //        parsedFile, 
-            //        patientId,
-            //        encounterId,
-            //        questionnaireResponseId),
-            //    patientBuilder.BuildPatientEntry(
-            //        parsedFile, 
-            //        patientId)
-            //);
             // Create Bundle document
             var bundleElements = new List<object>
-{
-    new XElement(ns + "id", new XAttribute("value", bundleId)),
-    new XElement(ns + "type", new XAttribute("value", "transaction"))
-};
+            {
+                new XElement(ns + "id", new XAttribute("value", bundleId)),
+                new XElement(ns + "type", new XAttribute("value", "transaction"))
+            };
             if (encounterXmlBuilder != null)
             {
                 var encounterEntry = encounterXmlBuilder.BuildEncounterEntry(

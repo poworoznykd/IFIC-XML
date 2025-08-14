@@ -120,6 +120,13 @@ namespace IFIC.FileIngestor.Transformers
                                     new XElement(ns + "postalCode", new XAttribute("value", postalCode))
                                   )
                                 : null,
+                            //Marital status
+                            !string.IsNullOrWhiteSpace(maritalStatus)
+                                ? new XElement(ns + "maritalStatus",
+                                    new XElement(ns + "coding",
+                                    new XElement(ns + "code", new XAttribute("value", maritalStatus))
+                                  ))
+                                : null,
 
                             // Communication - Primary Language
                             !string.IsNullOrWhiteSpace(language)
