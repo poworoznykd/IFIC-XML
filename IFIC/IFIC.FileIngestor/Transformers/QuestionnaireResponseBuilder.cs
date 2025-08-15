@@ -2197,119 +2197,129 @@ namespace IFIC.FileIngestor.Transformers
                                 ) : null
                             ),
                             new XElement(ns + "item",
-                            new XElement(ns + "linkId", SafeAttr("value", "I2")),
-                                !string.IsNullOrWhiteSpace(diseaseCode)
-                                ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2aa")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding",
-                                            new XElement(ns + "code", SafeAttr("value", diseaseCode))
+                                new XElement(ns + "linkId", SafeAttr("value", "I2"),
+                                    !string.IsNullOrWhiteSpace(diseaseCode)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2aa")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", SafeAttr("value", diseaseCode))
+                                            )
                                         )
-                                    )
-                                ) : null,
-                                // I2ab 
-                                !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10)
-                                ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2ab")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding", SafeAttr("value", diseaseDiagnosisICD10))
-                                    )
-                                ) : null
-                            ),
-                            new XElement(ns + "item",
-                            new XElement(ns + "linkId", SafeAttr("value", "I2")),
-                                !string.IsNullOrWhiteSpace(diseaseCode_2)
-                                ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2ba")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding",
-                                            new XElement(ns + "code", SafeAttr("value", diseaseCode_2))
+                                    ) : null,
+                                    // I2ab 
+                                    !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2ab")),
+                                            new XElement(ns + "answer",
+                                                new XElement(ns + "valueCoding",
+                                                    new XElement(ns + "code", SafeAttr("value", diseaseDiagnosisICD10))
+                                                )
                                         )
-                                    )
-                                ) : null,
-                                !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10_2)
-                                ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2bb")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding", SafeAttr("value", diseaseDiagnosisICD10_2))
-                                    )
-                                ) : null
-                            ),
-                            new XElement(ns + "item",
-                            new XElement(ns + "linkId", SafeAttr("value", "I2")),
-                                !string.IsNullOrWhiteSpace(diseaseCode_3)
-                                ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2ca")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding",
-                                            new XElement(ns + "code", SafeAttr("value", diseaseCode_3))
+                                    ) : null
+                                ),
+                                new XElement(ns + "linkId", SafeAttr("value", "I2"),
+                                    !string.IsNullOrWhiteSpace(diseaseCode_2)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2ba")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", SafeAttr("value", diseaseCode_2))
+                                            )
                                         )
-                                    )
-                                ) : null,
-                                !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10_3)
-                                ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2cb")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding", SafeAttr("value", diseaseDiagnosisICD10_3))
-                                    )
-                                ) : null
-                            ),
-                            new XElement(ns + "item",
-                            new XElement(ns + "linkId", SafeAttr("value", "I2")),
-                                !string.IsNullOrWhiteSpace(diseaseCode_4)
-                                ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2da")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding",
-                                            new XElement(ns + "code", SafeAttr("value", diseaseCode_4))
+                                    ) : null,
+                                    !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10_2)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2bb")),
+                                            new XElement(ns + "answer",
+                                                new XElement(ns + "valueCoding",
+                                                    new XElement(ns + "code", SafeAttr("value", diseaseDiagnosisICD10_2))
+                                                )
                                         )
-                                    )
-                                ) : null,
-                                !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10_4)
-                                ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2db")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding", SafeAttr("value", diseaseDiagnosisICD10_4))
-                                    )
-                                ) : null
-                            ),
-                            new XElement(ns + "item",
-                            new XElement(ns + "linkId", SafeAttr("value", "I2")),
-                                !string.IsNullOrWhiteSpace(diseaseCode_5)
-                                ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2ea")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding",
-                                            new XElement(ns + "code", SafeAttr("value", diseaseCode_5))
+                                    ) : null
+                                ),
+                                new XElement(ns + "linkId", SafeAttr("value", "I2"),
+                                    !string.IsNullOrWhiteSpace(diseaseCode_3)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2ca")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", SafeAttr("value", diseaseCode_3))
+                                            )
                                         )
-                                    )
-                                ) : null,
-                                !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10_5)
-                                ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2eb")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding", SafeAttr("value", diseaseDiagnosisICD10_5))
-                                    )
-                                ) : null
-                            ),
-                            new XElement(ns + "item",
-                            new XElement(ns + "linkId", SafeAttr("value", "I2")),
-                                !string.IsNullOrWhiteSpace(diseaseCode_6)
-                                ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2fa")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding",
-                                            new XElement(ns + "code", SafeAttr("value", diseaseCode_6))
+                                    ) : null,
+                                    // I2ab 
+                                    !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10_3)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2cb")),
+                                            new XElement(ns + "answer",
+                                                new XElement(ns + "valueCoding",
+                                                    new XElement(ns + "code", SafeAttr("value", diseaseDiagnosisICD10_3))
+                                                )
                                         )
-                                    )
-                                ) : null,
-                                !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10_6)
-                                ? new XElement(ns + "item",
-                                    new XElement(ns + "linkId", SafeAttr("value", "I2fb")),
-                                    new XElement(ns + "answer",
-                                        new XElement(ns + "valueCoding", SafeAttr("value", diseaseDiagnosisICD10_6))
-                                    )
-                                ) : null
+                                    ) : null
+                                ),
+                                new XElement(ns + "linkId", SafeAttr("value", "I2"),
+                                    !string.IsNullOrWhiteSpace(diseaseCode_4)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2da")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", SafeAttr("value", diseaseCode_4))
+                                            )
+                                        )
+                                    ) : null,
+                                    // I2ab 
+                                    !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10_4)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2db")),
+                                            new XElement(ns + "answer",
+                                                new XElement(ns + "valueCoding",
+                                                    new XElement(ns + "code", SafeAttr("value", diseaseDiagnosisICD10_4))
+                                                )
+                                        )
+                                    ) : null
+                                ),
+                                new XElement(ns + "linkId", SafeAttr("value", "I2"),
+                                    !string.IsNullOrWhiteSpace(diseaseCode_5)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2ea")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", SafeAttr("value", diseaseCode_5))
+                                            )
+                                        )
+                                    ) : null,
+                                    !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10_5)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2eb")),
+                                            new XElement(ns + "answer",
+                                                new XElement(ns + "valueCoding",
+                                                    new XElement(ns + "code", SafeAttr("value", diseaseDiagnosisICD10_5))
+                                                )
+                                        )
+                                    ) : null
+                                ),
+                                new XElement(ns + "linkId", SafeAttr("value", "I2"),
+                                    !string.IsNullOrWhiteSpace(diseaseCode_6)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2fa")),
+                                        new XElement(ns + "answer",
+                                            new XElement(ns + "valueCoding",
+                                                new XElement(ns + "code", SafeAttr("value", diseaseCode_6))
+                                            )
+                                        )
+                                    ) : null,
+                                    !string.IsNullOrWhiteSpace(diseaseDiagnosisICD10_6)
+                                    ? new XElement(ns + "item",
+                                        new XElement(ns + "linkId", SafeAttr("value", "I2fb")),
+                                            new XElement(ns + "answer",
+                                                new XElement(ns + "valueCoding",
+                                                    new XElement(ns + "code", SafeAttr("value", diseaseDiagnosisICD10_6))
+                                                )
+                                        )
+                                    ) : null
+                                )
                             )
                         ),
                         // Section I END
