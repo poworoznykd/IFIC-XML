@@ -124,7 +124,6 @@ namespace IFIC.Runner
                         questionnaireResponseBuilder
                     );
 
-                    // ✅ CHANGE: Explicitly set XML declaration before converting to string
                     bundleResponseDoc.Declaration = new XDeclaration("1.0", "UTF-8", null);
 
                     // Get the XML string (will now include declaration)
