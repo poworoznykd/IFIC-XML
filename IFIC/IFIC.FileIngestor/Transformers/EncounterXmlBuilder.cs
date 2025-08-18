@@ -444,7 +444,7 @@ namespace IFIC.FileIngestor.Transformers
             string encounterId)
         {
             parsedFile.Admin.TryGetValue("encOper", out var encOper);
-            if(encOper == "UPDATE")
+            if (encOper == "UPDATE")
             {
                 return new XElement(ns + "request",
                     new XElement(ns + "method", new XAttribute("value", "POST")),

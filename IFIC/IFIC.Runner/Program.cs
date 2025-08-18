@@ -36,6 +36,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using IFIC.FileIngestor.Models; // AdminMetadata
 
 namespace IFIC.Runner
 {
@@ -46,7 +47,7 @@ namespace IFIC.Runner
         /// (submit existing XML) or default mode (process ALL queued .dat files).
         /// TransmitRoot is read from appsettings.json (key: "TransmitRoot") with a safe fallback.
         /// </summary>
-        /// <param name="args">Command-line arguments. Use "--simulate &lt;filename&gt;" to submit an existing XML from SampleXML.</param>
+        /// <param name="args">Command-line arguments. Use "--simulate &lt;filename&gt;" to submit an existing XML.</param>
         public static async Task Main(string[] args)
         {
             Console.WriteLine("===== IFIC Runner Starting =====");
@@ -55,140 +56,150 @@ namespace IFIC.Runner
             var logger = host.Services.GetRequiredService<ILogger<Program>>();
             var apiClient = host.Services.GetRequiredService<IApiClient>();
             var config = host.Services.GetRequiredService<IConfiguration>();
-            if(config != null && apiClient != null)
+            if (config == null || apiClient == null)
             {
-                // Per-run output + logs
-                string baseDir = AppContext.BaseDirectory;
-                string outputFolder = Path.Combine(baseDir, "Output");
-                Directory.CreateDirectory(outputFolder);
+                Console.Error.WriteLine("Configuration or ApiClient not available.");
+                return;
+            }
 
-                string logFolder = Path.Combine(baseDir, "Logs");
-                Directory.CreateDirectory(logFolder);
+            // Per-run output + logs
+            string baseDir = AppContext.BaseDirectory;
+            string outputFolder = Path.Combine(baseDir, "Output");
+            Directory.CreateDirectory(outputFolder);
 
-                string runTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                string runLogFile = Path.Combine(logFolder, $"runlog_{runTimestamp}.txt");
+            string logFolder = Path.Combine(baseDir, "Logs");
+            Directory.CreateDirectory(logFolder);
 
-                try
+            string runTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string runLogFile = Path.Combine(logFolder, $"runlog_{runTimestamp}.txt");
+
+            try
+            {
+                // ----------------------------------------------------------------
+                // SIMULATION MODE: Submit an existing XML (core logic unchanged)
+                // ----------------------------------------------------------------
+                if (args.Length >= 2 && args[0].Equals("--simulate", StringComparison.OrdinalIgnoreCase))
                 {
-                    // ----------------------------------------------------------------
-                    // SIMULATION MODE: Submit an existing XML (core logic unchanged)
-                    // ----------------------------------------------------------------
-                    if (args.Length >= 2 && args[0].Equals("--simulate", StringComparison.OrdinalIgnoreCase))
+                    string xmlFileName = args[1];
+                    string sampleFolder = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SampleXML");
+                    string xmlFilePath = Path.Combine(sampleFolder, xmlFileName);
+
+                    logger.LogInformation("[SIMULATE] Submitting {File} to CIHI API...", xmlFilePath);
+                    File.AppendAllText(runLogFile, $"Simulation mode. Submitting file: {xmlFilePath}{Environment.NewLine}");
+
+                    if (!File.Exists(xmlFilePath))
                     {
-                        string xmlFileName = args[1];
-                        string sampleFolder = Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "SampleXML");
-                        string xmlFilePath = Path.Combine(sampleFolder, xmlFileName);
-
-                        logger.LogInformation("[SIMULATE] Submitting {File} to CIHI API...", xmlFilePath);
-                        File.AppendAllText(runLogFile, $"Simulation mode. Submitting file: {xmlFilePath}{Environment.NewLine}");
-
-                        if (!File.Exists(xmlFilePath))
-                        {
-                            logger.LogError("Simulation XML file not found: {Path}", xmlFilePath);
-                            File.AppendAllText(runLogFile, $"ERROR: XML file not found: {xmlFilePath}{Environment.NewLine}");
-                            return;
-                        }
-
-                        string xmlContent = await File.ReadAllTextAsync(xmlFilePath);
-                        if (!xmlContent.TrimStart().StartsWith("<?xml"))
-                        {
-                            xmlContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + xmlContent;
-                        }
-
-                        SaveWithDeclaration(xmlFilePath, xmlContent);
-                        await apiClient.SubmitXmlAsync(xmlContent);
-
-                        if (!string.IsNullOrWhiteSpace(IRRSApiClient.clientMessage))
-                        {
-                            File.AppendAllText(runLogFile, IRRSApiClient.clientMessage + Environment.NewLine);
-                        }
-
-                        logger.LogInformation("Simulation completed successfully.");
-                        File.AppendAllText(runLogFile, "Simulation completed successfully." + Environment.NewLine);
+                        logger.LogError("Simulation XML file not found: {Path}", xmlFilePath);
+                        File.AppendAllText(runLogFile, $"ERROR: XML file not found: {xmlFilePath}{Environment.NewLine}");
                         return;
                     }
 
-                    // ----------------------------------------------------------------
-                    // DEFAULT MODE: Process ALL .dat files in <TransmitRoot>\Queued
-                    // ----------------------------------------------------------------
-
-                    // TransmitRoot from appsettings.json (fallback if missing)
-                    string transmitRoot = config["TransmitRoot"];
-                    if (string.IsNullOrWhiteSpace(transmitRoot))
+                    string xmlContent = await File.ReadAllTextAsync(xmlFilePath);
+                    if (!xmlContent.TrimStart().StartsWith("<?xml"))
                     {
-                        transmitRoot = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "LTCF Transmit"));
+                        xmlContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + xmlContent;
                     }
 
-                    string queuedFolder = Path.Combine(transmitRoot, "Queued");
-                    Directory.CreateDirectory(queuedFolder);
+                    SaveWithDeclaration(xmlFilePath, xmlContent);
+                    await apiClient.SubmitXmlAsync(xmlContent);
 
-                    var datFiles = GetQueuedDatFilesOldestFirst(queuedFolder);
-                    if (datFiles.Count == 0)
+                    if (!string.IsNullOrWhiteSpace(IRRSApiClient.clientMessage))
                     {
-                        logger.LogWarning("No .dat files found in Queued.");
-                        File.AppendAllText(runLogFile, "No .dat files found in Queued." + Environment.NewLine);
-                        return;
+                        File.AppendAllText(runLogFile, IRRSApiClient.clientMessage + Environment.NewLine);
                     }
 
-                    logger.LogInformation("TransmitRoot: {Root}", transmitRoot);
-                    logger.LogInformation("Found {Count} queued .dat file(s).", datFiles.Count);
-                    File.AppendAllText(runLogFile, $"TransmitRoot: {transmitRoot}{Environment.NewLine}");
-                    File.AppendAllText(runLogFile, $"Found {datFiles.Count} queued .dat file(s).{Environment.NewLine}");
+                    logger.LogInformation("Simulation completed successfully.");
+                    File.AppendAllText(runLogFile, "Simulation completed successfully." + Environment.NewLine);
+                    return;
+                }
 
-                    // Process each .dat oldest → newest
-                    foreach (var datPath in datFiles)
+                // ----------------------------------------------------------------
+                // DEFAULT MODE: Process ALL .dat files in <TransmitRoot>\Queued
+                // ----------------------------------------------------------------
+
+                // TransmitRoot from appsettings.json (fallback if missing)
+                string transmitRoot = config["TransmitRoot"];
+                if (string.IsNullOrWhiteSpace(transmitRoot))
+                {
+                    transmitRoot = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "LTCF Transmit"));
+                }
+
+                string queuedFolder = Path.Combine(transmitRoot, "Queued");
+                Directory.CreateDirectory(queuedFolder);
+
+                var datFiles = GetQueuedDatFilesOldestFirst(queuedFolder);
+                if (datFiles.Count == 0)
+                {
+                    logger.LogWarning("No .dat files found in Queued.");
+                    File.AppendAllText(runLogFile, "No .dat files found in Queued." + Environment.NewLine);
+                    return;
+                }
+
+                logger.LogInformation("TransmitRoot: {Root}", transmitRoot);
+                logger.LogInformation("Found {Count} queued .dat file(s).", datFiles.Count);
+                File.AppendAllText(runLogFile, $"TransmitRoot: {transmitRoot}{Environment.NewLine}");
+                File.AppendAllText(runLogFile, $"Found {datFiles.Count} queued .dat file(s).{Environment.NewLine}");
+
+                // Process each .dat oldest → newest
+                foreach (var datPath in datFiles)
+                {
+                    string fileTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+
+                    // Build ADMIN **before** processing so routing never falls back to Unknown
+                    var initialAdmin = BuildInitialAdminMetadata(datPath, logger);
+
+                    try
                     {
-                        string fileTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                        logger.LogInformation("Processing flat file: {File}", datPath);
+                        File.AppendAllText(runLogFile, $"Processing flat file: {datPath}{Environment.NewLine}");
+
+                        var (passed, finalAdmin) = await ProcessSingleFileAsync(
+                            datPath,
+                            outputFolder,
+                            fileTimestamp,
+                            apiClient,
+                            logger,
+                            runLogFile
+                        );
+
+                        // Prefer ADMIN from processing; if it is incomplete, fall back to the initial ADMIN we built up-front
+                        var adminForRouting = CoalesceAdmin(finalAdmin, initialAdmin);
+
+                        RouteDatFile(datPath, adminForRouting, passed, transmitRoot);
+                        logger.LogInformation("Routed {File} to {Status}.", Path.GetFileName(datPath), passed ? "Processed" : "Errored");
+                    }
+                    catch (Exception ex)
+                    {
+                        File.AppendAllText(runLogFile, ex + Environment.NewLine);
+                        logger.LogError(ex, "An error occurred during processing of {File}.", datPath);
 
                         try
                         {
-                            logger.LogInformation("Processing flat file: {File}", datPath);
-                            File.AppendAllText(runLogFile, $"Processing flat file: {datPath}{Environment.NewLine}");
-
-                            var (passed, admin) = await ProcessSingleFileAsync(
-                                datPath,
-                                outputFolder,
-                                fileTimestamp,
-                                apiClient,
-                                logger,
-                                runLogFile
-                            );
-
-                            RouteDatFile(datPath, admin, passed, transmitRoot);
-                            logger.LogInformation("Routed {File} to {Status}.", Path.GetFileName(datPath), passed ? "Processed" : "Errored");
+                            // Use the initial ADMIN gathered before processing to avoid Unknown
+                            RouteDatFile(datPath, admin: initialAdmin, passed: false, transmitRoot: transmitRoot);
+                            logger.LogInformation("Routed {File} to Errored.", Path.GetFileName(datPath));
                         }
-                        catch (Exception ex)
+                        catch (Exception routeEx)
                         {
-                            File.AppendAllText(runLogFile, ex + Environment.NewLine);
-                            logger.LogError(ex, "An error occurred during processing of {File}.", datPath);
-
-                            try
-                            {
-                                RouteDatFile(datPath, admin: null, passed: false, transmitRoot: transmitRoot);
-                                logger.LogInformation("Routed {File} to Errored.", Path.GetFileName(datPath));
-                            }
-                            catch (Exception routeEx)
-                            {
-                                logger.LogError(routeEx, "Routing failed for {File}", datPath);
-                                File.AppendAllText(runLogFile, $"Routing failed for {datPath}: {routeEx}{Environment.NewLine}");
-                            }
+                            logger.LogError(routeEx, "Routing failed for {File}", datPath);
+                            File.AppendAllText(runLogFile, $"Routing failed for {datPath}: {routeEx}{Environment.NewLine}");
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    File.AppendAllText(runLogFile, ex + Environment.NewLine);
-                    logger.LogError(ex, "A fatal error occurred.");
-                }
             }
-           
+            catch (Exception ex)
+            {
+                File.AppendAllText(runLogFile, ex + Environment.NewLine);
+                logger.LogError(ex, "A fatal error occurred.");
+            }
         }
 
         /// <summary>
         /// Processes a single .dat file:
         /// parses the flat file, builds Patient/Encounter/Questionnaire bundles,
         /// constructs the full Bundle XML, saves outputs, submits to CIHI,
-        /// then evaluates pass/fail from the API response text.
+        /// then evaluates pass/fail from the API response text. Returns AdminMetadata
+        /// derived from the parsed ADMIN dictionary (never null; may be partial).
         /// </summary>
         /// <param name="datPath">Full path to the queued .dat file.</param>
         /// <param name="outputFolder">Folder where XML outputs are written.</param>
@@ -196,14 +207,10 @@ namespace IFIC.Runner
         /// <param name="apiClient">CIHI API client.</param>
         /// <param name="logger">Logger instance.</param>
         /// <param name="runLogFile">Path to the run log file.</param>
-        /// <returns>
-        /// Tuple (Passed, Admin) where:
-        ///   Passed = true if considered successful based on API response; false otherwise.
-        ///   Admin = [ADMIN] key/value map (may be empty but never null).
-        /// </returns>
+        /// <returns>Tuple (Passed, Admin) where Admin is AdminMetadata for routing.</returns>
         /// <exception cref="IOException">Thrown on I/O failures while saving XML files.</exception>
         /// <exception cref="XmlException">Thrown if generated XML cannot be parsed or serialized.</exception>
-        private static async Task<(bool Passed, Dictionary<string, string> Admin)> ProcessSingleFileAsync(
+        private static async Task<(bool Passed, AdminMetadata Admin)> ProcessSingleFileAsync(
             string datPath,
             string outputFolder,
             string timestamp,
@@ -214,15 +221,15 @@ namespace IFIC.Runner
             // Parse the flat file into structured data
             var parser = new FlatFileParser();
             var parsedFile = parser.Parse(datPath);
-            var admin = parsedFile.Admin ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var adminDict = parsedFile.Admin ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             // Build patient, encounter, and questionnaire bundles if applicable
             var patientBuilder = parsedFile.Patient.Any() ? new PatientXmlBuilder() : null;
             var encounterBuilder = parsedFile.Encounter.Any() ? new EncounterXmlBuilder() : null;
             var questionnaireResponseBuilder = parsedFile.AssessmentSections.Any() ? new QuestionnaireResponseBuilder() : null;
 
-            parsedFile.Admin.TryGetValue("patOper", out var patOper);
-            parsedFile.Admin.TryGetValue("encOper", out var encOper);
+            adminDict.TryGetValue("patOper", out var patOper);
+            adminDict.TryGetValue("encOper", out var encOper);
 
             if (patOper != "USE")
                 patientBuilder?.BuildPatientBundle(parsedFile);
@@ -269,7 +276,10 @@ namespace IFIC.Runner
             logger.LogInformation("Submission evaluated as: {Status}", passed ? "PASS" : "FAIL");
             File.AppendAllText(runLogFile, $"Evaluated as {(passed ? "PASS" : "FAIL")}{Environment.NewLine}");
 
-            return (passed, admin);
+            // Convert dictionary ADMIN → AdminMetadata
+            var adminMeta = ToAdminMetadata(adminDict, datPath);
+
+            return (passed, adminMeta);
         }
 
         /// <summary>
@@ -284,20 +294,17 @@ namespace IFIC.Runner
             if (string.IsNullOrWhiteSpace(apiResponse))
             {
                 // If client didn't provide a response, choose your default.
-                // Using "true" to avoid false negatives; change to false if you prefer strict behavior.
                 return true;
             }
 
             try
             {
-                // Some clients prefix with "OK - " or other text before the XML. Strip everything before '<'.
                 int firstLt = apiResponse.IndexOf('<');
                 string xml = firstLt >= 0 ? apiResponse.Substring(firstLt) : apiResponse;
 
                 var ns = (XNamespace)"http://hl7.org/fhir";
                 var doc = XDocument.Parse(xml, LoadOptions.PreserveWhitespace);
 
-                // If there's any OperationOutcome with error/fatal, fail.
                 var anyErrorOutcome =
                     doc.Descendants(ns + "OperationOutcome")
                        .Descendants(ns + "issue")
@@ -310,7 +317,6 @@ namespace IFIC.Runner
                 if (anyErrorOutcome)
                     return false;
 
-                // Ensure Bundle type is transaction-response
                 var bundle = doc.Root;
                 if (bundle == null || bundle.Name != ns + "Bundle")
                     return false;
@@ -319,7 +325,6 @@ namespace IFIC.Runner
                 if (typeVal != "transaction-response")
                     return false;
 
-                // All entry.response.status must be 2xx
                 var statuses =
                     bundle.Elements(ns + "entry")
                           .Select(e => e.Element(ns + "response"))
@@ -329,36 +334,25 @@ namespace IFIC.Runner
                           .ToList();
 
                 if (statuses.Count == 0)
-                    return false; // No statuses found → suspicious
+                    return false;
 
                 foreach (var s in statuses)
                 {
-                    // Status from CIHI appears as numeric string (e.g., "201")
                     if (!int.TryParse(s, out int code) || code < 200 || code >= 300)
                         return false;
                 }
-
-                // Optionally, you can enforce that etag is CREATED/UPDATED if needed:
-                // var etagsOk = bundle.Elements(ns + "entry")
-                //     .Select(e => e.Element(ns + "response")?.Element(ns + "etag")?.Attribute("value")?.Value?.Trim().ToUpperInvariant())
-                //     .Where(v => v != null)
-                //     .All(v => v == "CREATED" || v == "UPDATED");
-                // if (!etagsOk) return false;
 
                 return true;
             }
             catch
             {
-                // If parsing fails, fall back to simple heuristics:
                 var lower = apiResponse.ToLowerInvariant();
                 if (lower.Contains("operationoutcome") && lower.Contains("severity") && (lower.Contains("error") || lower.Contains("fatal")))
                     return false;
 
-                // If it says "status value=" and shows a 4xx/5xx anywhere, treat as fail.
                 if (lower.Contains(" status value=\"4") || lower.Contains(" status value=\"5"))
                     return false;
 
-                // Otherwise assume success.
                 return true;
             }
         }
@@ -430,24 +424,35 @@ namespace IFIC.Runner
 
         /// <summary>
         /// Moves the processed .dat (and matching .xml, if present) into either
-        /// &lt;TransmitRoot&gt;\&lt;Fiscal&gt;\&lt;Quarter&gt;\Processed or \Errored.
-        /// If ADMIN is null or missing fields, routes to &lt;TransmitRoot&gt;\Unknown\Processed|Errored.
+        /// &lt;TransmitRoot&gt;\&lt;Fiscal&gt;\QX-YYYY\Processed or \Errored.
+        /// Falls back to Unknown if Admin metadata and filename parsing both fail.
         /// </summary>
         /// <param name="datPath">Full path to the .dat file.</param>
-        /// <param name="admin">[ADMIN] key/value map (may be null on parse errors).</param>
+        /// <param name="admin">Admin metadata parsed from [ADMIN].</param>
         /// <param name="passed">True to route to Processed; false to route to Errored.</param>
         /// <param name="transmitRoot">Root folder of the LTCF Transmit tree.</param>
-        /// <exception cref="IOException">Thrown if file moves fail due to I/O errors.</exception>
-        private static void RouteDatFile(string datPath, Dictionary<string, string>? admin, bool passed, string transmitRoot)
+        private static void RouteDatFile(string datPath, AdminMetadata admin, bool passed, string transmitRoot)
         {
             if (string.IsNullOrWhiteSpace(datPath) || !File.Exists(datPath))
                 return;
 
-            string fiscal = (admin != null && admin.TryGetValue("fiscal", out var f) && !string.IsNullOrWhiteSpace(f)) ? f : "Unknown";
-            string quarter = (admin != null && admin.TryGetValue("quarter", out var q) && !string.IsNullOrWhiteSpace(q)) ? q : "Unknown";
+            // Normalize routing values
+            string fiscal = string.IsNullOrWhiteSpace(admin?.Fiscal)
+                ? DeriveFiscalFromFileName(datPath) ?? "Unknown"
+                : admin!.Fiscal!;
+
+            string quarter = string.IsNullOrWhiteSpace(admin?.Quarter)
+                ? DeriveQuarterFromFileName(datPath) ?? "Unknown"
+                : NormalizeQuarter(admin!.Quarter);
+
+            // Build "Qx-YYYY" subfolder
+            string quarterFiscalFolder = $"{quarter}-{fiscal}";
 
             string statusFolder = passed ? "Processed" : "Errored";
-            string destFolder = Path.Combine(transmitRoot, fiscal, quarter, statusFolder);
+
+            // ✅ Final destination:
+            // <TransmitRoot>\<Fiscal>\Qx-YYYY\Processed
+            string destFolder = Path.Combine(transmitRoot, fiscal, quarterFiscalFolder, statusFolder);
             Directory.CreateDirectory(destFolder);
 
             // Move .dat
@@ -463,6 +468,8 @@ namespace IFIC.Runner
                 File.Move(xmlCandidate, targetXml, overwrite: true);
             }
         }
+
+
 
         /// <summary>
         /// Saves XML to a file with declaration and UTF-8 encoding.
@@ -515,5 +522,247 @@ namespace IFIC.Runner
                     logging.ClearProviders();
                     logging.AddConsole();
                 });
+
+        // ---------------------------
+        // Admin helpers (new)
+        // ---------------------------
+
+        /// <summary>
+        /// Builds initial AdminMetadata PRIOR to processing, by reading the queued .dat file's
+        /// [ADMIN] section. If not found or incomplete, falls back to the filename pattern.
+        /// </summary>
+        /// <param name="datPath">Full path to .dat file.</param>
+        /// <param name="logger">Logger.</param>
+        /// <returns>AdminMetadata with at least Fiscal and Quarter when possible.</returns>
+        private static AdminMetadata BuildInitialAdminMetadata(string datPath, ILogger logger)
+        {
+            var meta = new AdminMetadata();
+
+            try
+            {
+                var lines = File.ReadAllLines(datPath);
+                bool inAdmin = false;
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    var line = lines[i].Trim();
+                    if (line.Length == 0) continue;
+
+                    if (line.StartsWith("[") && line.EndsWith("]"))
+                    {
+                        inAdmin = string.Equals(line, "[ADMIN]", StringComparison.OrdinalIgnoreCase);
+                        if (!inAdmin && meta.Fiscal != null && meta.Quarter != null)
+                            break; // we got what we need
+                        continue;
+                    }
+
+                    if (!inAdmin) continue;
+                    // Parse key=value
+                    var eq = line.IndexOf('=');
+                    if (eq <= 0) continue;
+                    var key = line.Substring(0, eq).Trim();
+                    var val = line[(eq + 1)..].Trim();
+
+                    switch (key.ToLowerInvariant())
+                    {
+                        case "fhirpatid": meta = meta with { FhirPatID = val }; break;
+                        case "fhirpatkey": meta = meta with { FhirPatKey = val }; break;
+                        case "patoper": meta = meta with { PatOper = val }; break;
+                        case "fhirencid": meta = meta with { FhirEncID = val }; break;
+                        case "fhirenckey": meta = meta with { FhirEncKey = val }; break;
+                        case "encoper": meta = meta with { EncOper = val }; break;
+                        case "fhirasmid": meta = meta with { FhirAsmID = val }; break;
+                        case "recid": meta = meta with { RecId = val }; break;
+                        case "asmoper": meta = meta with { AsmOper = val }; break;
+                        case "asmtype": meta = meta with { AsmType = val }; break;
+                        case "fiscal": meta = meta with { Fiscal = val }; break;
+                        case "quarter": meta = meta with { Quarter = val }; break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to pre-parse [ADMIN] from {File}; will fall back to filename for routing.", datPath);
+            }
+
+            // Fallbacks from filename if missing
+            if (string.IsNullOrWhiteSpace(meta.Fiscal))
+            {
+                meta = meta with { Fiscal = DeriveFiscalFromFileName(datPath) };
+            }
+            if (string.IsNullOrWhiteSpace(meta.Quarter))
+            {
+                meta = meta with { Quarter = DeriveQuarterFromFileName(datPath) };
+            }
+
+            return meta;
+        }
+
+        /// <summary>
+        /// Converts a parsed ADMIN dictionary into AdminMetadata. Falls back to filename
+        /// for missing Fiscal/Quarter.
+        /// </summary>
+        /// <param name="admin">Dictionary parsed by the FlatFileParser.</param>
+        /// <param name="datPath">File path for fallbacks.</param>
+        /// <returns>AdminMetadata instance.</returns>
+        private static AdminMetadata ToAdminMetadata(Dictionary<string, string> admin, string datPath)
+        {
+            admin ??= new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            admin.TryGetValue("FhirPatID", out var fhirPatId);
+            admin.TryGetValue("FhirPatKey", out var fhirPatKey);
+            admin.TryGetValue("patOper", out var patOper);
+
+            admin.TryGetValue("FhirEncID", out var fhirEncId);
+            admin.TryGetValue("FhirEncKey", out var fhirEncKey);
+            admin.TryGetValue("encOper", out var encOper);
+
+            admin.TryGetValue("FhirAsmID", out var fhirAsmId);
+            admin.TryGetValue("recId", out var recId);
+            admin.TryGetValue("asmOper", out var asmOper);
+
+            admin.TryGetValue("asmType", out var asmType);
+
+            admin.TryGetValue("fiscal", out var fiscal);
+            admin.TryGetValue("quarter", out var quarter);
+
+            if (string.IsNullOrWhiteSpace(fiscal))
+                fiscal = DeriveFiscalFromFileName(datPath);
+
+            if (string.IsNullOrWhiteSpace(quarter))
+                quarter = DeriveQuarterFromFileName(datPath);
+
+            return new AdminMetadata
+            {
+                FhirPatID = fhirPatId,
+                FhirPatKey = fhirPatKey,
+                PatOper = patOper,
+                FhirEncID = fhirEncId,
+                FhirEncKey = fhirEncKey,
+                EncOper = encOper,
+                FhirAsmID = fhirAsmId,
+                RecId = recId,
+                AsmOper = asmOper,
+                AsmType = asmType,
+                Fiscal = fiscal,
+                Quarter = quarter
+            };
+        }
+
+        /// <summary>
+        /// Coalesces two AdminMetadata instances, preferring non-empty values from primary;
+        /// falls back to secondary for missing fields. Ensures Fiscal and Quarter are filled if possible.
+        /// </summary>
+        /// <param name="primary">Preferred (e.g., from parse).</param>
+        /// <param name="secondary">Fallback (e.g., from pre-scan/filename).</param>
+        /// <returns>Combined AdminMetadata.</returns>
+        private static AdminMetadata CoalesceAdmin(AdminMetadata primary, AdminMetadata secondary)
+        {
+            // Prefer primary entries; if null/empty, use secondary
+            string pick(string? a, string? b) => !string.IsNullOrWhiteSpace(a) ? a! : (b ?? string.Empty);
+
+            var merged = new AdminMetadata
+            {
+                FhirPatID = pick(primary?.FhirPatID, secondary?.FhirPatID),
+                FhirPatKey = pick(primary?.FhirPatKey, secondary?.FhirPatKey),
+                PatOper = pick(primary?.PatOper, secondary?.PatOper),
+                FhirEncID = pick(primary?.FhirEncID, secondary?.FhirEncID),
+                FhirEncKey = pick(primary?.FhirEncKey, secondary?.FhirEncKey),
+                EncOper = pick(primary?.EncOper, secondary?.EncOper),
+                FhirAsmID = pick(primary?.FhirAsmID, secondary?.FhirAsmID),
+                RecId = pick(primary?.RecId, secondary?.RecId),
+                AsmOper = pick(primary?.AsmOper, secondary?.AsmOper),
+                AsmType = pick(primary?.AsmType, secondary?.AsmType),
+                Fiscal = pick(primary?.Fiscal, secondary?.Fiscal),
+                Quarter = pick(primary?.Quarter, secondary?.Quarter),
+            };
+
+            return merged;
+        }
+
+        /// <summary>
+        /// Normalizes various Quarter strings to "Q1".."Q4".
+        /// Accepts "1","01","Q1","Q1-2025","Quarter1" etc. Returns null if not recognized.
+        /// </summary>
+        /// <param name="q">Raw quarter string.</param>
+        /// <returns>Normalized "Q1".."Q4" or null.</returns>
+        private static string? NormalizeQuarter(string? q)
+        {
+            if (string.IsNullOrWhiteSpace(q)) return null;
+            var s = q.Trim().ToUpperInvariant();
+
+            // Remove any trailing fiscal decorations, keep the part containing Q#
+            if (s.Contains('-'))
+            {
+                var part = s.Split('-').FirstOrDefault(x => x.StartsWith("Q", StringComparison.OrdinalIgnoreCase));
+                if (!string.IsNullOrWhiteSpace(part))
+                    s = part;
+            }
+
+            if (s.StartsWith("Q"))
+            {
+                var n = new string(s.Skip(1).TakeWhile(char.IsDigit).ToArray());
+                if (n == "1" || n == "01") return "Q1";
+                if (n == "2" || n == "02") return "Q2";
+                if (n == "3" || n == "03") return "Q3";
+                if (n == "4" || n == "04") return "Q4";
+            }
+            else
+            {
+                // Just digits?
+                var n = new string(s.TakeWhile(char.IsDigit).ToArray());
+                if (n == "1" || n == "01") return "Q1";
+                if (n == "2" || n == "02") return "Q2";
+                if (n == "3" || n == "03") return "Q3";
+                if (n == "4" || n == "04") return "Q4";
+            }
+
+            if (s.StartsWith("QUARTER"))
+            {
+                var n = new string(s.SkipWhile(c => !char.IsDigit(c)).TakeWhile(char.IsDigit).ToArray());
+                if (n == "1") return "Q1";
+                if (n == "2") return "Q2";
+                if (n == "3") return "Q3";
+                if (n == "4") return "Q4";
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Derives Fiscal (year string "YYYY") from filename "yyyyMMdd-..." (first 4 digits), if possible.
+        /// Returns null if not derivable.
+        /// </summary>
+        /// <param name="datPath">Path to .dat file.</param>
+        /// <returns>Fiscal string or null.</returns>
+        private static string? DeriveFiscalFromFileName(string datPath)
+        {
+            var name = Path.GetFileNameWithoutExtension(datPath);
+            var parts = name.Split('-');
+            if (parts.Length >= 1 && parts[0].Length >= 4)
+            {
+                var y = parts[0].Substring(0, 4);
+                if (int.TryParse(y, out _)) return y;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Derives Quarter ("Q1".."Q4") from filename last token "-0N.dat" where 01..04 maps to Q1..Q4.
+        /// Returns null if not derivable.
+        /// </summary>
+        /// <param name="datPath">Path to .dat file.</param>
+        /// <returns>Quarter string or null.</returns>
+        private static string? DeriveQuarterFromFileName(string datPath)
+        {
+            var name = Path.GetFileNameWithoutExtension(datPath);
+            var parts = name.Split('-');
+            if (parts.Length >= 4)
+            {
+                var last = parts[^1]; // e.g., "01"
+                var q = NormalizeQuarter(last);
+                return q;
+            }
+            return null;
+        }
     }
 }

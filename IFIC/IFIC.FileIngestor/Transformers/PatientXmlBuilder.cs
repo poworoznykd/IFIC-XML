@@ -53,7 +53,7 @@ namespace IFIC.FileIngestor.Transformers
             parsedFile.Patient.TryGetValue("A5A", out var healthCardNumber);
             parsedFile.Patient.TryGetValue("A5B", out var province);
             parsedFile.Patient.TryGetValue("A5C", out var caseId);
-            parsedFile.Patient.TryGetValue("A2A", out var gender);
+            parsedFile.Patient.TryGetValue("A2A", out var sexAtBirth);
             parsedFile.Patient.TryGetValue("A3", out var birthDate);
             parsedFile.Patient.TryGetValue("A4", out var maritalStatus);
             parsedFile.Patient.TryGetValue("B4", out var language);
@@ -74,9 +74,9 @@ namespace IFIC.FileIngestor.Transformers
                             ),
 
             // Identifier - Sex at birth
-                            !string.IsNullOrWhiteSpace(gender)
+                            !string.IsNullOrWhiteSpace(sexAtBirth)
                                 ? new XElement(ns + "extension", new XAttribute("url", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-birth-sex"),
-                                    new XElement(ns + "valueCode", new XAttribute("value", gender))
+                                    new XElement(ns + "valueCode", new XAttribute("value", sexAtBirth))
                                   )
                                 : null,
 

@@ -13,7 +13,7 @@ namespace IFIC.FileIngestor.Models
     /// Parsed values from the [ADMIN] section of the queued data file.
     /// Only Fiscal and Quarter are required for routing; others are optional.
     /// </summary>
-    public sealed class AdminMetadata
+    public sealed record AdminMetadata
     {
         // Patient
         public string? FhirPatID { get; init; }
@@ -36,7 +36,7 @@ namespace IFIC.FileIngestor.Models
         /// <summary>Required for routing. Example: "2025".</summary>
         public string? Fiscal { get; init; }
 
-        /// <summary>Required for routing. Example: "Q3-2025".</summary>
+        /// <summary>Required for routing. Example: "Q3" or "Q3-2025" (normalized later).</summary>
         public string? Quarter { get; init; }
     }
 }

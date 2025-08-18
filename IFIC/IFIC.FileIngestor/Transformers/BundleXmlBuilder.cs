@@ -38,7 +38,8 @@ namespace IFIC.FileIngestor.Transformers
                 new XElement(ns + "id", new XAttribute("value", bundleId)),
                 new XElement(ns + "type", new XAttribute("value", "transaction"))
             };
-            if (encounterXmlBuilder != null)
+            parsedFile.Admin.TryGetValue("encOper", out var encOper);
+            if (encounterXmlBuilder != null && encOper != "USE")
             {
                 var encounterEntry = encounterXmlBuilder.BuildEncounterEntry(
                     parsedFile,

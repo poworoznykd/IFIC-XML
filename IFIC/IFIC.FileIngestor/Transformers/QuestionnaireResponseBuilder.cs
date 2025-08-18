@@ -3670,7 +3670,7 @@ namespace IFIC.FileIngestor.Transformers
             string encounterId)
         {
             parsedFile.Admin.TryGetValue("encOper", out var encOper);
-            if (encOper == "UPDATE" || encOper == "USE")
+            if (encOper == "USE")
             {
                 return new XElement(ns + "context",
                    new XElement(ns + "reference",
