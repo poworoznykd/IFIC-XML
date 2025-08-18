@@ -317,11 +317,7 @@ namespace IFIC.FileIngestor.Transformers
                         new XElement(ns + "status", new XAttribute("value", "planned")),
                         // contained - Patient ID
                         !string.IsNullOrWhiteSpace(patientId)
-                            ? new XElement(ns + "subject",
-                                new XElement(ns + "reference",
-                                    new XAttribute("value", $"urn:uuid:{patientId}")
-                                )
-                            )
+                            ? BuildSubject(parsedFile,patientId)
                             : null,
 
                         // period
@@ -336,11 +332,12 @@ namespace IFIC.FileIngestor.Transformers
                             ) : null
                         ),
             #region Commented Code 3
-                            new XElement(ns + "account",
+                        (coverageCodes.Any(code => parsedFile.Encounter.ContainsKey(code) && !string.IsNullOrWhiteSpace(parsedFile.Encounter[code]))
+                            ?new XElement(ns + "account",
                                 new XElement(ns + "reference",
                                     new XAttribute("value", "#paymentSource")
                                 )
-                            ),
+                            ) : null),
 
                            //Hospitalization
                            !string.IsNullOrWhiteSpace(admittedFrom) ||
@@ -412,13 +409,55 @@ namespace IFIC.FileIngestor.Transformers
                             ) : null
                     )
                 ),
-                new XElement(ns + "request",
-                    new XElement(ns + "method", new XAttribute("value", "POST")),
-                    new XElement(ns + "url", new XAttribute("value", $"urn:uuid:{encounterId}"))
-                )
+                BuildSubEntryPoint(parsedFile, encounterId)
             );
 
             return result;
+        }
+
+        private XElement BuildSubject(
+            ParsedFlatFile parsedFile,
+            string patientId)
+        {
+            parsedFile.Admin.TryGetValue("patOper", out var patOper);
+            if (patOper == "USE")
+            {
+                return new XElement(ns + "subject",
+                   new XElement(ns + "reference",
+                       new XAttribute("value", $"Patient/{patientId}")
+                   )
+                );
+            }
+            else
+            {
+                return new XElement(ns + "subject",
+                    new XElement(ns + "reference",
+                        new XAttribute("value", $"urn:uuid:{patientId}")
+                    )
+                );
+            }
+
+        }
+
+        private XElement BuildSubEntryPoint(
+            ParsedFlatFile parsedFile,
+            string encounterId)
+        {
+            parsedFile.Admin.TryGetValue("encOper", out var encOper);
+            if(encOper == "UPDATE")
+            {
+                return new XElement(ns + "request",
+                    new XElement(ns + "method", new XAttribute("value", "POST")),
+                    new XElement(ns + "url", new XAttribute("value", $"/encounter/{encounterId}/$update"))
+                );
+            }
+            else
+            {
+                return new XElement(ns + "request",
+                    new XElement(ns + "method", new XAttribute("value", "POST")),
+                    new XElement(ns + "url", new XAttribute("value", $"urn:uuid:{encounterId}"))
+                );
+            }
         }
 
         /// <summary>
@@ -459,11 +498,13 @@ namespace IFIC.FileIngestor.Transformers
             {
                 throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
             }
+            parsedFile.Admin.TryGetValue("fhirPatID", out var fhirPatID);
+            parsedFile.Admin.TryGetValue("fhirEncID", out var fhirEncID);
             XElement bundle = BuildEncounterBundleHeader(
                 parsedFile,
                 null,
-                null,
-                null);
+                fhirPatID,
+                fhirEncID);
 
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
         }

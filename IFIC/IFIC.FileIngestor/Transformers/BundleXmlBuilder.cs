@@ -22,11 +22,14 @@ namespace IFIC.FileIngestor.Transformers
             {
                 throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
             }
+            parsedFile.Admin.TryGetValue("fhirPatID", out var fhirPatID);
+            parsedFile.Admin.TryGetValue("fhirEncID", out var fhirEncID);
+
+            string patientId = string.IsNullOrEmpty(fhirPatID) ? Guid.NewGuid().ToString() : fhirPatID;
+            string encounterId = string.IsNullOrEmpty(fhirEncID) ? Guid.NewGuid().ToString() : fhirEncID;
 
             // Generate unique IDs for resources
             string bundleId = Guid.NewGuid().ToString();
-            string patientId = Guid.NewGuid().ToString();
-            string encounterId = Guid.NewGuid().ToString();
             string questionnaireResponseId = Guid.NewGuid().ToString();
 
             // Create Bundle document
@@ -54,7 +57,8 @@ namespace IFIC.FileIngestor.Transformers
                 );
                 bundleElements.Add(questionnaireEntry);
             }
-            if (patientBuilder != null)
+            parsedFile.Admin.TryGetValue("patOper", out var patOper);
+            if (patientBuilder != null && patOper != "USE" )
             {
                 var patientEntry = patientBuilder.BuildPatientEntry(
                     parsedFile,

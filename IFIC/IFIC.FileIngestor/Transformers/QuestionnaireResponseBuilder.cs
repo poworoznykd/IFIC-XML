@@ -841,9 +841,9 @@ namespace IFIC.FileIngestor.Transformers
             parsedFile.AssessmentSections.TryGetValue("SECTION R", out var sectionR);
             if (sectionR != null)
             {
-                sectionR.TryGetValue("R1", out lastDayOfStay);
-                sectionR.TryGetValue("R2", out residentialLivingStatusAfterDischarge);
-                sectionR.TryGetValue("R4", out dischargeToFacilityNumber);
+                //sectionR.TryGetValue("R1", out lastDayOfStay);
+                //sectionR.TryGetValue("R2", out residentialLivingStatusAfterDischarge);
+                //sectionR.TryGetValue("R4", out dischargeToFacilityNumber);
                 sectionR.TryGetValue("R3", out homeCareServicesScheduledAtDischarge);
                 sectionR.TryGetValue("R5", out covid19Status);
             }
@@ -880,17 +880,9 @@ namespace IFIC.FileIngestor.Transformers
                             SafeAttr("value", "completed")
                         ),
                         // < !--Patient ID-- >
-                        new XElement(ns + "subject",
-                            new XElement(ns + "reference",
-                                SafeAttr("value", $"urn:uuid:{patientId}")
-                            )
-                        ),
-                            //< !--Encounter ID-- >
-                            new XElement(ns + "context",
-                            new XElement(ns + "reference",
-                                SafeAttr("value", $"urn:uuid:{encounterId}")
-                            )
-                        ),
+                        BuildSubject(parsedFile, patientId),
+                        //< !--Encounter ID-- >
+                        BuildContext(parsedFile,encounterId),
                         // Section A
                         new XElement(ns + "item",
                             new XElement(ns + "linkId",
@@ -3529,22 +3521,22 @@ namespace IFIC.FileIngestor.Transformers
                         // Section R
                         new XElement(ns + "item",
                             new XElement(ns + "linkId", SafeAttr("value", $"R")),
-                            new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", $"R1")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", lastDayOfStay))
-                                    )
-                                )
-                            ),
-                            new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", $"R2")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", residentialLivingStatusAfterDischarge))
-                                    )
-                                )
-                            ),
+                            //new XElement(ns + "item",
+                            //    new XElement(ns + "linkId", SafeAttr("value", $"R1")),
+                            //    new XElement(ns + "answer",
+                            //        new XElement(ns + "valueCoding",
+                            //            new XElement(ns + "code", SafeAttr("value", lastDayOfStay))
+                            //        )
+                            //    )
+                            //),
+                            //new XElement(ns + "item",
+                            //    new XElement(ns + "linkId", SafeAttr("value", $"R2")),
+                            //    new XElement(ns + "answer",
+                            //        new XElement(ns + "valueCoding",
+                            //            new XElement(ns + "code", SafeAttr("value", residentialLivingStatusAfterDischarge))
+                            //        )
+                            //    )
+                            //),
                             new XElement(ns + "item",
                             new XElement(ns + "linkId", SafeAttr("value", $"R3")),
                                 new XElement(ns + "answer",
@@ -3553,14 +3545,14 @@ namespace IFIC.FileIngestor.Transformers
                                     )
                                 )
                             ),
-                            new XElement(ns + "item",
-                            new XElement(ns + "linkId", SafeAttr("value", $"R4")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", homeCareServicesScheduledAtDischarge))
-                                    )
-                                )
-                            ),
+                            //new XElement(ns + "item",
+                            //new XElement(ns + "linkId", SafeAttr("value", $"R4")),
+                            //    new XElement(ns + "answer",
+                            //        new XElement(ns + "valueCoding",
+                            //            new XElement(ns + "code", SafeAttr("value", homeCareServicesScheduledAtDischarge))
+                            //        )
+                            //    )
+                            //),
                             new XElement(ns + "item",
                             new XElement(ns + "linkId", SafeAttr("value", $"R5")),
                                 new XElement(ns + "answer",
@@ -3638,13 +3630,63 @@ namespace IFIC.FileIngestor.Transformers
             {
                 throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
             }
+            parsedFile.Admin.TryGetValue("fhirPatID", out var fhirPatID);
+            parsedFile.Admin.TryGetValue("fhirEncID", out var fhirEncID);
             XElement bundle = BuildQuestionnaireResponseBundleHeader(
                 parsedFile,
                 null,
-                null,
-                null,
+                fhirPatID,
+                fhirEncID,
                 null);
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
+        }
+
+        private XElement BuildSubject(
+            ParsedFlatFile parsedFile,
+            string patientId)
+        {
+            parsedFile.Admin.TryGetValue("patOper", out var patOper);
+            if (patOper == "USE")
+            {
+                return new XElement(ns + "subject",
+                   new XElement(ns + "reference",
+                       new XAttribute("value", $"Patient/{patientId}")
+                   )
+                );
+            }
+            else
+            {
+                return new XElement(ns + "subject",
+                    new XElement(ns + "reference",
+                        new XAttribute("value", $"urn:uuid:{patientId}")
+                    )
+                );
+            }
+
+        }
+
+        private XElement BuildContext(
+            ParsedFlatFile parsedFile,
+            string encounterId)
+        {
+            parsedFile.Admin.TryGetValue("encOper", out var encOper);
+            if (encOper == "UPDATE" || encOper == "USE")
+            {
+                return new XElement(ns + "context",
+                   new XElement(ns + "reference",
+                       new XAttribute("value", $"Encounter/{encounterId}")
+                   )
+                );
+            }
+            else
+            {
+                return new XElement(ns + "context",
+                    new XElement(ns + "reference",
+                        new XAttribute("value", $"urn:uuid:{encounterId}")
+                    )
+                );
+            }
+
         }
     }
 }
