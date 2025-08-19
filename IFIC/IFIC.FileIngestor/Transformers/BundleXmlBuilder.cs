@@ -37,7 +37,7 @@ namespace IFIC.FileIngestor.Transformers
                 new XElement(ns + "id", new XAttribute("value", bundleId)),
                 new XElement(ns + "type", new XAttribute("value", "transaction"))
             };
-           
+
             if (encounterXmlBuilder != null && adminMeta.EncOper != "USE")
             {
                 var encounterEntry = encounterXmlBuilder.BuildEncounterEntry(

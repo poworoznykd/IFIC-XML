@@ -1,0 +1,11 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows
+
+PS C:\Users\darry> curl.exe -X GET "https://vt.api.cihi.ca/irrs-service/fhir/Encounter?_id=8fc5f334-9a39-4729-a56f-12790c01fdb6" `
+>>     -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWJPcmdJZCI6IjB4MDAwMDAwMDAwMDAwODVGQyIsInRva2VuVmVyc2lvbiI6IjEuMCIsInNjb3BlIjpbIklSUlMiXSwicHVycG9zZUNvZGUiOiJWVCIsInNlcnZpY2VzIjpbeyJzZXJ2aWNlIjoiSVJSUyIsInJvbGVzIjp7IlJPTEVfU1VCTUlUIjpbeyJzdWJObyI6IkNJSElURVNUSVJSUzMwIiwiYXV0aFVyaSI6IjEiLCJzcGVjQ2QiOiJpcnJzLWx0Y2YifV19LCJzcGVjaWZpY2F0aW9ucyI6eyJpcnJzLWx0Y2YiOlt7InZlcnNpb24iOiIxLjAiLCJzdGF0dXMiOiJSVlQifV19LCJhdXRoVXJpcyI6eyIxIjoiaHR0cDovL2NpaGkuY2EvZmhpci9OYW1pbmdTeXN0ZW0vY2loaS1zdWJtaXNzaW9uLWlkZW50aWZpZXIifX1dLCJleHAiOjE3NTU2MzM5NzIsImF1dGhvcml0aWVzIjpbIlJPTEVfRVhURVJOQUxfU1lTVEVNIl0sImp0aSI6IkxvTXZKWkhqZy1sa0t5MGE3UTA4SFRWckMxcyIsImNsaWVudF9pZCI6Imx0Y2YtY2xydHlfY2loaV9jaWhpdGVzdGlycnMzMCJ9.RLheBLk4LWuqNDdPcAQyrs3r_Roqfc0Ayo3c_KrZ28TntsdBfKsXP2hafgF08GRs1_UTjBG-cdUkJ888GNlRcXOSVy3sxJwws3BzLw4L6974W4JgV9XUuRIYdZX35bsGa9guCdeX9O4F4wOWZdTA5xdeBZ_usi9TzhdZ6shucCM" `
+>>     -H "Accept: application/json"
+{"resourceType":"Bundle","id":"22fddb82-2a30-4cbb-b5f5-0be81645cd84","meta":{"lastUpdated":"2025-08-19T19:06:51.991+00:00"},"type":"searchset","total":1,"link":[{"relation":"self","url":"https://vt.api.cihi.ca/irrs-service/fhir/Encounter?_id=8fc5f334-9a39-4729-a56f-12790c01fdb6"}],"entry":[{"fullUrl":"https://vt.api.cihi.ca/irrs-service/fhir/Encounter/8fc5f334-9a39-4729-a56f-12790c01fdb6","resource":{"resourceType":"Encounter","id":"8fc5f334-9a39-4729-a56f-12790c01fdb6","meta":{"lastUpdated":"2025-08-19T18:43:47.000+00:00","profile":["http://cihi.ca/fhir/irrs/StructureDefinition/irrs-encounter"]},"subject":{"reference":"Patient/b494a784-2315-4676-9319-0bff5f016396"},"period":{"start":"2025-06-01T00:00:00"},"serviceProvider":{"identifier":{"system":"http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier","value":"CIHITESTIRRS30"}}}}]}
+PS C:\Users\darry>
+
