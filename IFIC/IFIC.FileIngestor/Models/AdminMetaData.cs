@@ -1,11 +1,12 @@
-﻿/************************************************************************************
-* FILE          : AdminMetadata.cs
-* PROJECT       : IFIC.FileIngestor
-* PROGRAMMER    : Darryl Poworoznyk
-* FIRST VERSION : 2025-08-17
-* DESCRIPTION   :
-*   Strongly-typed view of [ADMIN] metadata used for routing and context.
-************************************************************************************/
+﻿/*
+ * FILE          : AdminMetadata.cs
+ * PROJECT       : IFIC.FileIngestor
+ * PROGRAMMER    : Darryl Poworoznyk
+ * FIRST VERSION : 2025-08-17
+ * DESCRIPTION   :
+ *   Strongly typed representation of [ADMIN] metadata from Clarity LTCF 
+ *   flat files, providing routing and contextual information.
+ */
 
 using System;
 using System.Collections.Generic;

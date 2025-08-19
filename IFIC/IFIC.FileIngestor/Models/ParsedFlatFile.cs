@@ -1,12 +1,12 @@
-﻿/************************************************************************************
-* FILE          : ParsedFlatFile.cs
-* PROJECT       : IFIC-XML
-* PROGRAMMER    : Darryl Poworoznyk
-* FIRST VERSION : 2025-08-02
-* DESCRIPTION   : Represents parsed data from Clarity LTCF flat files with separate 
-*                 dictionaries for Admin, Patient, Encounter, and Assessment sections.
-************************************************************************************/
-
+﻿/*
+ * FILE          : ParsedFlatFile.cs
+ * PROJECT       : IFIC - IRRS/FHIR Intermediary Component
+ * PROGRAMMER    : Darryl Poworoznyk
+ * FIRST VERSION : 2025-08-08
+ * DESCRIPTION   :
+ *   Represents parsed data from Clarity LTCF flat files with separate 
+ *   dictionaries for Admin, Patient, Encounter, and Assessment sections.
+ */
 using System.Collections.Generic;
 
 namespace IFIC.FileIngestor.Models

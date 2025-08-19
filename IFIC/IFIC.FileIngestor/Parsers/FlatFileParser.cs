@@ -1,10 +1,12 @@
-﻿/************************************************************************************
-* FILE          : FlatFileParser.cs
-* PROJECT       : IFIC-XML
-* PROGRAMMER    : Darryl Poworoznyk
-* FIRST VERSION : 2025-08-02
-* DESCRIPTION   : Reads and parses Clarity LTCF flat files into ParsedFlatFile objects.
-************************************************************************************/
+﻿/*
+ * FILE          : FlatFileParser.cs
+ * PROJECT       : IFIC-XML
+ * PROGRAMMER    : Darryl Poworoznyk
+ * FIRST VERSION : 2025-08-02
+ * DESCRIPTION   :
+ *   Reads Clarity LTCF flat files and converts them into ParsedFlatFile objects
+ *   for downstream transformation into FHIR-compliant resources.
+ */
 
 using System;
 using System.Collections.Generic;

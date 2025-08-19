@@ -1,11 +1,11 @@
-﻿/************************************************************************************
-* FILE          : IApiClient.cs
-* PROJECT       : IFIC - IRRS/FHIR Intermediary Component
-* PROGRAMMER    : Darryl Poworoznyk
-* FIRST VERSION : 2025-08-02
-* DESCRIPTION   : Defines an abstraction for submitting XML payloads to the CIHI API.
-************************************************************************************/
-
+﻿/*
+ * FILE          : IApiClient.cs
+ * PROJECT       : IFIC - IRRS/FHIR Intermediary Component
+ * PROGRAMMER    : Darryl Poworoznyk
+ * FIRST VERSION : 2025-08-08
+ * DESCRIPTION   :
+ *   Defines an abstraction for submitting XML payloads to the CIHI API.
+ */
 using System.Threading.Tasks;
 
 namespace IFIC.ApiClient

@@ -1,14 +1,13 @@
-﻿/************************************************************************************
-* FILE          : AuthManager.cs
-* PROJECT       : IFIC - IRRS/FHIR Intermediary Component
-* PROGRAMMER    : Darryl Poworoznyk
-* FIRST VERSION : 2025-08-02
-* DESCRIPTION   :
-*   Handles OAuth2 authentication by creating a JWT, signing it with
-*   a private key, and exchanging it for an access token. Implements
-*   in-memory caching to avoid redundant token requests.
-************************************************************************************/
-
+﻿/*
+ * FILE          : AuthManager.cs
+ * PROJECT       : IFIC - IRRS/FHIR Intermediary Component
+ * PROGRAMMER    : Darryl Poworoznyk
+ * FIRST VERSION : 2025-08-08
+ * DESCRIPTION   :
+ *  Handles OAuth2 authentication by creating a JWT, signing it with
+ *  a private key, and exchanging it for an access token. Implements
+ *  in-memory caching to avoid redundant token requests.
+ */
 using System;
 using System.IO;
 using System.Linq;
@@ -30,7 +29,6 @@ namespace IFIC.Auth
         private readonly IConfiguration config;
         private readonly IHttpClientFactory httpClientFactory;
         private readonly ILogger<AuthManager> logger;
-        private readonly TokenService tokenService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthManager"/> class.
@@ -42,13 +40,11 @@ namespace IFIC.Auth
         public AuthManager(
             IConfiguration config,
             IHttpClientFactory httpClientFactory,
-            ILogger<AuthManager> logger,
-            TokenService tokenService)
+            ILogger<AuthManager> logger)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
             this.httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
         }
 
         /// <summary>

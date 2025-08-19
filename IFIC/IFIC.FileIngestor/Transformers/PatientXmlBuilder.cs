@@ -1,13 +1,4 @@
-﻿/************************************************************************************
-* FILE          : PatientXmlBuilder.cs
-* PROJECT       : IFIC-XML
-* PROGRAMMER    : Darryl Poworoznyk
-* FIRST VERSION : 2025-08-02
-* DESCRIPTION   :
-*   Builds FHIR-compliant XML for Patient resources wrapped in a Bundle.
-************************************************************************************/
-
-using System;
+﻿using System;
 using System.Xml.Linq;
 using IFIC.FileIngestor.Models;
 

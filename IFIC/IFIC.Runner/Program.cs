@@ -1,23 +1,29 @@
-﻿/************************************************************************************
-* FILE          : Program.cs
-* PROJECT       : IFIC-XML
-* PROGRAMMER    : Darryl Poworoznyk
-* FIRST VERSION : 2025-08-02
-* DESCRIPTION   :
-*   Main entry point for IFIC Runner. Supports:
-*     - Default Mode: Read ALL *.dat from Queued (oldest → newest) → Parse → Build FHIR
-*                     Patient/Encounter/Questionnaire → Save + Submit to CIHI → Move
-*                     each source file to Processed/Errored under <Fiscal>\QX-YYYY.
-*     - Simulation Mode (--simulate <filename>): Submits an existing XML file to CIHI.
-*
-*   CONFIGURATION:
-*     - The root folder (TransmitRoot) is configurable via appsettings.json:
-*         {
-*           "TransmitRoot": "C:\\Data\\LTCF Transmit"
-*         }
-*     - The program then looks in: <TransmitRoot>\Queued
-*     - If not set, it falls back to a repo-relative default path.
-************************************************************************************/
+﻿/*
+ * FILE          : Program.cs
+ * PROJECT       : IFIC-XML
+ * PROGRAMMER    : Darryl Poworoznyk
+ * FIRST VERSION : 2025-08-02
+ * DESCRIPTION   :
+ *   Main entry point for the IFIC Runner.
+ *
+ *   Modes:
+ *     - Default Mode:
+ *         Reads all *.dat files from the Queued folder (oldest → newest),
+ *         parses them, builds FHIR Patient/Encounter/Questionnaire resources,
+ *         saves and submits to CIHI, then moves each source file to
+ *         Processed/Errored under <Fiscal>\QX-YYYY.
+ *
+ *     - Simulation Mode (--simulate <filename>):
+ *         Submits an existing XML file to CIHI without reading queued files.
+ *
+ *   Configuration:
+ *     - Root folder (TransmitRoot) is defined in appsettings.json:
+ *         {
+ *           "TransmitRoot": "C:\\Data\\LTCF Transmit"
+ *         }
+ *     - Program looks for input in <TransmitRoot>\Queued.
+ *     - If not set, falls back to a repo-relative default path.
+ */
 
 using IFIC.ApiClient;
 using IFIC.Auth;
@@ -749,7 +755,6 @@ namespace IFIC.Runner
                 .ConfigureServices((context, services) =>
                 {
                     services.AddHttpClient();
-                    services.AddSingleton<TokenService>();
                     services.AddSingleton<IAuthManager, AuthManager>();
                     services.AddSingleton<IApiClient, IRRSApiClient>();
                 })

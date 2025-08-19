@@ -1,4 +1,15 @@
-﻿using System;
+﻿/*
+ * FILE          : CihiResponseParser.cs
+ * PROJECT       : IFIC.FileIngestor
+ * PROGRAMMER    : Darryl Poworoznyk
+ * FIRST VERSION : 2025-08-19
+ * DESCRIPTION   :
+ *   Provides parsing utilities for CIHI FHIR transaction-response Bundles.
+ *   Extracts resource IDs for Patient, Encounter, and QuestionnaireResponse
+ *   from the raw XML returned by the CIHI API.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

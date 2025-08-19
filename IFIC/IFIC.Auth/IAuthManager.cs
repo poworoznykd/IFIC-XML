@@ -14,16 +14,6 @@ namespace IFIC.Auth
 {
     public interface IAuthManager
     {
-        /*
-         * FUNCTION      : GetAccessTokenAsync
-         * DESCRIPTION   :
-         *   Retrieves an OAuth2 access token using the JWT Bearer Client
-         *   Credentials flow from CIHI authentication service.
-         * PARAMETERS    :
-         *   (none)
-         * RETURNS       :
-         *   Task<string> : Asynchronous operation returning the access token
-         */
         Task<string> GetAccessTokenAsync();
     }
 }
