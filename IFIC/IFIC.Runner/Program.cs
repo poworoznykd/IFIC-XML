@@ -19,15 +19,6 @@
 *     - If not set, it falls back to a repo-relative default path.
 ************************************************************************************/
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
 using IFIC.ApiClient;
 using IFIC.Auth;
 using IFIC.FileIngestor.Models;      // AdminMetadata
@@ -37,6 +28,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.Crypto;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace IFIC.Runner
 {
@@ -72,9 +73,7 @@ namespace IFIC.Runner
 
                 try
                 {
-                    // ----------------------------------------------------------------
                     // SIMULATION MODE: Submit an existing XML (core logic unchanged)
-                    // ----------------------------------------------------------------
                     if (args.Length >= 2 && args[0].Equals("--simulate", StringComparison.OrdinalIgnoreCase))
                     {
                         string xmlFileName = args[1];
@@ -109,11 +108,7 @@ namespace IFIC.Runner
                         File.AppendAllText(runLogFile, "Simulation completed successfully." + Environment.NewLine);
                         return;
                     }
-
-                    // ----------------------------------------------------------------
                     // DEFAULT MODE: Process ALL .dat files in <TransmitRoot>\Queued
-                    // ----------------------------------------------------------------
-
                     // TransmitRoot from appsettings.json (fallback if missing)
                     string transmitRoot = config["TransmitRoot"];
                     if (string.IsNullOrWhiteSpace(transmitRoot))
@@ -247,9 +242,7 @@ namespace IFIC.Runner
                 Quarter = $"{quarterOnly}-{fiscalYear}"
             };
 
-            // ============================================================
-            // 🔑 If not FIRST ASSESSMENT, try to reuse existing CIHI IDs
-            // ============================================================
+            // If not FIRST ASSESSMENT, try to reuse existing CIHI IDs
             if (!string.Equals(adminMeta.AsmType, "FIRST ASSESSMENT", StringComparison.OrdinalIgnoreCase))
             {
                 // Patient ID lookup
@@ -273,9 +266,7 @@ namespace IFIC.Runner
                     adminMeta.FhirAsmID = cachedAsmId;
                 }
 
-                // ============================================================
-                // 🚨 Guard clause: UPDATE/DELETE requires cached IDs
-                // ============================================================
+                //Guard clause: UPDATE / DELETE requires cached IDs
                 if ((string.Equals(adminMeta.PatOper, "UPDATE", StringComparison.OrdinalIgnoreCase) ||
                      string.Equals(adminMeta.PatOper, "DELETE", StringComparison.OrdinalIgnoreCase)) &&
                     string.IsNullOrWhiteSpace(adminMeta.FhirPatID))
@@ -294,10 +285,7 @@ namespace IFIC.Runner
                     return (false, adminMeta);
                 }
             }
-
-            // ============================================================
             // Build bundles as normal
-            // ============================================================
             var patientBuilder = parsedFile.Patient.Any() ? new PatientXmlBuilder(adminMeta) : null;
             var encounterBuilder = parsedFile.Encounter.Any() ? new EncounterXmlBuilder(adminMeta) : null;
             var questionnaireResponseBuilder = parsedFile.AssessmentSections.Any() ? new QuestionnaireResponseBuilder(adminMeta) : null;
