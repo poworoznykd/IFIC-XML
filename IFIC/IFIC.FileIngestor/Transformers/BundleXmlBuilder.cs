@@ -16,17 +16,16 @@ namespace IFIC.FileIngestor.Transformers
             ParsedFlatFile parsedFile,
             PatientXmlBuilder patientBuilder,
             EncounterXmlBuilder encounterXmlBuilder,
-            QuestionnaireResponseBuilder questionnaireResponseBuilder)
+            QuestionnaireResponseBuilder questionnaireResponseBuilder,
+            AdminMetadata adminMeta)
         {
             if (parsedFile == null)
             {
                 throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
             }
-            parsedFile.Admin.TryGetValue("fhirPatID", out var fhirPatID);
-            parsedFile.Admin.TryGetValue("fhirEncID", out var fhirEncID);
-
-            string patientId = string.IsNullOrEmpty(fhirPatID) ? Guid.NewGuid().ToString() : fhirPatID;
-            string encounterId = string.IsNullOrEmpty(fhirEncID) ? Guid.NewGuid().ToString() : fhirEncID;
+            
+            string patientId = string.IsNullOrEmpty(adminMeta.FhirPatID) ? Guid.NewGuid().ToString() : adminMeta.FhirPatID;
+            string encounterId = string.IsNullOrEmpty(adminMeta.FhirEncID) ? Guid.NewGuid().ToString() : adminMeta.FhirEncID;
 
             // Generate unique IDs for resources
             string bundleId = Guid.NewGuid().ToString();
@@ -38,8 +37,8 @@ namespace IFIC.FileIngestor.Transformers
                 new XElement(ns + "id", new XAttribute("value", bundleId)),
                 new XElement(ns + "type", new XAttribute("value", "transaction"))
             };
-            parsedFile.Admin.TryGetValue("encOper", out var encOper);
-            if (encounterXmlBuilder != null && encOper != "USE")
+           
+            if (encounterXmlBuilder != null && adminMeta.EncOper != "USE")
             {
                 var encounterEntry = encounterXmlBuilder.BuildEncounterEntry(
                     parsedFile,
@@ -58,8 +57,7 @@ namespace IFIC.FileIngestor.Transformers
                 );
                 bundleElements.Add(questionnaireEntry);
             }
-            parsedFile.Admin.TryGetValue("patOper", out var patOper);
-            if (patientBuilder != null && patOper != "USE" )
+            if (patientBuilder != null && adminMeta.PatOper != "USE")
             {
                 var patientEntry = patientBuilder.BuildPatientEntry(
                     parsedFile,

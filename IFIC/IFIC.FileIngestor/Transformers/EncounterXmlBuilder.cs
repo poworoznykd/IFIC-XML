@@ -12,17 +12,25 @@ namespace IFIC.FileIngestor.Transformers
     {
         private static readonly XNamespace ns = "http://hl7.org/fhir";
         public string StartDate { get; set; }
+        public AdminMetadata AdminData { get; set; }
+
+        public EncounterXmlBuilder(AdminMetadata data)
+        {
+            AdminData = data;
+        }
+
+        /// <summary>
+        /// Creates the I code elements.
+        /// </summary>
+        /// <param name="parsedFile">The parsed flat file</param>
+        /// <returns></returns>
         private List<XElement> CreateICodeA7Elements(ParsedFlatFile parsedFile)
         {
             var coverageCodes = new[] { "iA7a", "iA7b", "iA7c", "iA7d", "iA7e", "iA7f", "iA7g", "iA7h", "iA7i", "iA7j", "iA7k" };
             var coverageContainedElements = new List<XElement>();
 
-            // Determine if assessment type contains "return"
-            string axType = parsedFile.Admin.TryGetValue("axType", out var axTypeValue) ? axTypeValue : string.Empty;
-            bool isReturnAssessment = axType.IndexOf("return", StringComparison.OrdinalIgnoreCase) >= 0;
-
             // Choose appropriate field for start date
-            string dateFieldKey = isReturnAssessment ? "A12" : "B2";
+            string dateFieldKey = AdminData.AsmType.Contains("return", StringComparison.OrdinalIgnoreCase) ? "A12" : "B2";
             StartDate = parsedFile.Encounter.TryGetValue(dateFieldKey, out var rawDate) && !string.IsNullOrWhiteSpace(rawDate)
                 ? rawDate
                 : null; // no fallback; omit if missing
@@ -409,7 +417,7 @@ namespace IFIC.FileIngestor.Transformers
                             ) : null
                     )
                 ),
-                BuildSubEntryPoint(parsedFile, encounterId)
+                BuildEntryPoint(parsedFile, encounterId)
             );
 
             return result;
@@ -419,13 +427,12 @@ namespace IFIC.FileIngestor.Transformers
             ParsedFlatFile parsedFile,
             string patientId)
         {
-            parsedFile.Admin.TryGetValue("patOper", out var patOper);
-            if (patOper == "USE")
+            if (AdminData.PatOper?.Equals("USE", StringComparison.OrdinalIgnoreCase) == true)
             {
                 return new XElement(ns + "subject",
-                   new XElement(ns + "reference",
-                       new XAttribute("value", $"Patient/{patientId}")
-                   )
+                    new XElement(ns + "reference",
+                        new XAttribute("value", $"Patient/{patientId}")
+                    )
                 );
             }
             else
@@ -436,27 +443,56 @@ namespace IFIC.FileIngestor.Transformers
                     )
                 );
             }
-
         }
 
-        private XElement BuildSubEntryPoint(
+        /// <summary>
+        /// Builds the Encounter request entry point for the FHIR bundle.
+        /// Uses AdminData.EncOper to decide which API action to generate.
+        /// </summary>
+        /// <param name="parsedFile">Parsed flat file (not directly used here).</param>
+        /// <param name="encounterId">Encounter UUID or placeholder.</param>
+        /// <returns>XElement representing the request element, or null for USE.</returns>
+        private XElement BuildEntryPoint(
             ParsedFlatFile parsedFile,
             string encounterId)
         {
-            parsedFile.Admin.TryGetValue("encOper", out var encOper);
-            if (encOper == "UPDATE")
+            if (string.IsNullOrWhiteSpace(AdminData.EncOper))
             {
-                return new XElement(ns + "request",
-                    new XElement(ns + "method", new XAttribute("value", "POST")),
-                    new XElement(ns + "url", new XAttribute("value", $"/encounter/{encounterId}/$update"))
-                );
+                throw new InvalidOperationException("Encounter operation (encOper) not specified in ADMIN section.");
             }
-            else
+
+            switch (AdminData.EncOper.Trim().ToUpperInvariant())
             {
-                return new XElement(ns + "request",
-                    new XElement(ns + "method", new XAttribute("value", "POST")),
-                    new XElement(ns + "url", new XAttribute("value", $"urn:uuid:{encounterId}"))
-                );
+                case "CREATE":
+                    return new XElement(ns + "request",
+                        new XElement(ns + "method", new XAttribute("value", "POST")),
+                        new XElement(ns + "url", new XAttribute("value", $"/Encounter/"))
+                    );
+
+                case "CORRECTION":
+                    return new XElement(ns + "request",
+                        new XElement(ns + "method", new XAttribute("value", "PUT")),
+                        new XElement(ns + "url", new XAttribute("value", $"/Encounter/{encounterId}"))
+                    );
+
+                case "UPDATE":
+                    return new XElement(ns + "request",
+                        new XElement(ns + "method", new XAttribute("value", "POST")),
+                        new XElement(ns + "url", new XAttribute("value", $"/Encounter/{encounterId}/$update"))
+                    );
+
+                case "DELETE":
+                    return new XElement(ns + "request",
+                        new XElement(ns + "method", new XAttribute("value", "DELETE")),
+                        new XElement(ns + "url", new XAttribute("value", $"/Encounter/{encounterId}"))
+                    );
+
+                case "USE":
+                    // No REST call; just reference the Encounter UUID in the bundle
+                    return null;
+
+                default:
+                    throw new InvalidOperationException($"Unknown encounter operation: {AdminData.EncOper}");
             }
         }
 
@@ -498,13 +534,15 @@ namespace IFIC.FileIngestor.Transformers
             {
                 throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
             }
-            parsedFile.Admin.TryGetValue("fhirPatID", out var fhirPatID);
-            parsedFile.Admin.TryGetValue("fhirEncID", out var fhirEncID);
+
+            string patientId = AdminData.FhirPatID;
+            string encounterId = AdminData.FhirEncID;
+
             XElement bundle = BuildEncounterBundleHeader(
                 parsedFile,
                 null,
-                fhirPatID,
-                fhirEncID);
+                patientId,
+                encounterId);
 
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
         }

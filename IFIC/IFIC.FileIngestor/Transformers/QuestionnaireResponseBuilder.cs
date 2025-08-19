@@ -16,7 +16,12 @@ namespace IFIC.FileIngestor.Transformers
     {
         private static readonly XNamespace ns = "http://hl7.org/fhir";
 
-        // === Added helpers to prune empty nodes and sections ===
+        public AdminMetadata AdminData { get; set; }
+        public QuestionnaireResponseBuilder(AdminMetadata data)
+        {
+            AdminData = data;
+        }
+
         private static bool HasValueAttribute(XElement e)
         {
             var attr = e.Attribute("value");
@@ -3574,16 +3579,51 @@ namespace IFIC.FileIngestor.Transformers
                                 )
                         )
                     ),
-                    new XElement(ns + "request",
-                        new XElement(ns + "method", SafeAttr("value", "POST")),
-                        new XElement(ns + "url", new XAttribute("value", $"urn:uuid:{questionnaireResponseId}"))
-                    )
+                    BuildEntryPoint(questionnaireResponseId)
                 );
 
             // Prune empty sections/items/answers with missing values
             PruneQuestionnaireResponseEntry(entry);
 
             return entry;
+        }
+
+        /// <summary>
+        /// Builds the QuestionnaireResponse request entry point for the FHIR bundle.
+        /// Uses AdminData.AsmOper (assessment operation) to decide which API action to generate.
+        /// </summary>
+        /// <param name="questionnaireResponseId">The QuestionnaireResponse UUID (from AdminData or fallback).</param>
+        /// <returns>XElement representing the request element.</returns>
+        private XElement BuildEntryPoint(string questionnaireResponseId)
+        {
+            if (string.IsNullOrWhiteSpace(AdminData.AsmOper))
+            {
+                throw new InvalidOperationException("Assessment operation (asmOper) not specified in ADMIN section.");
+            }
+
+            switch (AdminData.AsmOper.Trim().ToUpperInvariant())
+            {
+                case "CREATE":
+                    return new XElement(ns + "request",
+                        new XElement(ns + "method", new XAttribute("value", "POST")),
+                        new XElement(ns + "url", new XAttribute("value", "/QuestionnaireResponse"))
+                    );
+
+                case "CORRECTION":
+                    return new XElement(ns + "request",
+                        new XElement(ns + "method", new XAttribute("value", "PUT")),
+                        new XElement(ns + "url", new XAttribute("value", $"/QuestionnaireResponse/{questionnaireResponseId}"))
+                    );
+
+                case "DELETE":
+                    return new XElement(ns + "request",
+                        new XElement(ns + "method", new XAttribute("value", "DELETE")),
+                        new XElement(ns + "url", new XAttribute("value", $"/QuestionnaireResponse/{questionnaireResponseId}"))
+                    );
+
+                default:
+                    throw new InvalidOperationException($"Unknown assessment operation: {AdminData.AsmOper}");
+            }
         }
 
         /// <summary>
@@ -3594,16 +3634,14 @@ namespace IFIC.FileIngestor.Transformers
         public XElement BuildQuestionnaireResponseBundleHeader(
             ParsedFlatFile parsedFile,
             string bundleId,
-            string patientId,
-            string encounterId,
             string questionnaireResponseId)
         {
             XAttribute SafeAttr(XName name, string value) => string.IsNullOrWhiteSpace(value) ? null : new XAttribute(name, value);
 
             // Generate unique IDs for resources
             bundleId = string.IsNullOrEmpty(bundleId) ? Guid.NewGuid().ToString() : bundleId;
-            patientId = string.IsNullOrEmpty(patientId) ? Guid.NewGuid().ToString() : patientId;
-            encounterId = string.IsNullOrEmpty(encounterId) ? Guid.NewGuid().ToString() : encounterId;
+            string patientId = string.IsNullOrEmpty(AdminData.FhirPatID) ? Guid.NewGuid().ToString() : AdminData.FhirPatID;
+            string encounterId = string.IsNullOrEmpty(AdminData.FhirEncID) ? Guid.NewGuid().ToString() : AdminData.FhirEncID;
             questionnaireResponseId = string.IsNullOrEmpty(questionnaireResponseId) ? Guid.NewGuid().ToString() : questionnaireResponseId;
 
             parsedFile.Patient.TryGetValue("OrgID", out var orgId);
@@ -3630,23 +3668,24 @@ namespace IFIC.FileIngestor.Transformers
             {
                 throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
             }
-            parsedFile.Admin.TryGetValue("fhirPatID", out var fhirPatID);
-            parsedFile.Admin.TryGetValue("fhirEncID", out var fhirEncID);
             XElement bundle = BuildQuestionnaireResponseBundleHeader(
                 parsedFile,
                 null,
-                fhirPatID,
-                fhirEncID,
                 null);
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
         }
 
+        /// <summary>
+        /// Builds the subject element for the questionnaire
+        /// </summary>
+        /// <param name="parsedFile"></param>
+        /// <param name="patientId"></param>
+        /// <returns></returns>
         private XElement BuildSubject(
             ParsedFlatFile parsedFile,
             string patientId)
         {
-            parsedFile.Admin.TryGetValue("patOper", out var patOper);
-            if (patOper == "USE")
+            if (AdminData.PatOper == "USE")
             {
                 return new XElement(ns + "subject",
                    new XElement(ns + "reference",
@@ -3665,12 +3704,17 @@ namespace IFIC.FileIngestor.Transformers
 
         }
 
+        /// <summary>
+        /// Builds the context element for the questionnaire
+        /// </summary>
+        /// <param name="parsedFile"></param>
+        /// <param name="encounterId"></param>
+        /// <returns></returns>
         private XElement BuildContext(
             ParsedFlatFile parsedFile,
             string encounterId)
         {
-            parsedFile.Admin.TryGetValue("encOper", out var encOper);
-            if (encOper == "USE")
+            if (AdminData.EncOper == "USE")
             {
                 return new XElement(ns + "context",
                    new XElement(ns + "reference",
