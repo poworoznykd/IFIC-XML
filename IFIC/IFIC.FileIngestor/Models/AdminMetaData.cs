@@ -20,28 +20,28 @@ namespace IFIC.FileIngestor.Models
     public sealed class AdminMetadata
     {
         // Patient
-        public string? FhirPatID { get; init; }
-        public string? FhirPatKey { get; init; }
-        public string? PatOper { get; init; }
+        public string? FhirPatID { get; set; }
+        public string? FhirPatKey { get; set; }
+        public string? PatOper { get; set; }
 
         // Encounter
-        public string? FhirEncID { get; init; }
-        public string? FhirEncKey { get; init; }
-        public string? EncOper { get; init; }
+        public string? FhirEncID { get; set; }
+        public string? FhirEncKey { get; set; }
+        public string? EncOper { get; set; }
 
         // Assessment
-        public string? FhirAsmID { get; init; }
-        public string? RecId { get; init; }
-        public string? AsmOper { get; init; }
+        public string? FhirAsmID { get; set; }
+        public string? RecId { get; set; }
+        public string? AsmOper { get; set; }
 
         // Assessment type and routing
-        public string? AsmType { get; init; }
+        public string? AsmType { get; set; }
 
         /// <summary>Required for routing. Example: "2025".</summary>
-        public string? Fiscal { get; init; }
+        public string? Fiscal { get; set; }
 
         /// <summary>Required for routing. Example: "Q3-2025".</summary>
-        public string? Quarter { get; init; }
+        public string? Quarter { get; set; }
 
         /// <summary>
         /// Creates an <see cref="AdminMetadata"/> from a parsed flat file by reading the [ADMIN] dictionary.

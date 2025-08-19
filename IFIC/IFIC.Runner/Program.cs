@@ -50,6 +50,7 @@ namespace IFIC.Runner
         /// <param name="args">Command-line arguments. Use "--simulate &lt;filename&gt;" to submit an existing XML from SampleXML.</param>
         public static async Task Main(string[] args)
         {
+            Dictionary<string, string> SavedIdsByKey = new Dictionary<string, string>();
             Console.WriteLine("===== IFIC Runner Starting =====");
 
             IHost host = CreateHostBuilder(args).Build();
@@ -158,7 +159,8 @@ namespace IFIC.Runner
                                 logger,
                                 runLogFile,
                                 initialFiscal,
-                                initialQuarter
+                                initialQuarter,
+                                SavedIdsByKey
                             );
 
                             RouteDatFile(datPath, adminMeta, passed, transmitRoot);
@@ -198,25 +200,13 @@ namespace IFIC.Runner
 
         /// <summary>
         /// Processes a single .dat file:
-        /// parses the flat file, materializes AdminMetadata (and normalizes IDs/operations),
-        /// builds Patient/Encounter/Questionnaire bundles, constructs the full Bundle XML,
-        /// saves outputs, submits to CIHI, then evaluates pass/fail from the API response text.
+        /// - Parses the flat file into structured data.
+        /// - Normalizes AdminMetadata.
+        /// - If not FIRST ASSESSMENT, attempts to retrieve saved Patient/Encounter IDs from dictionary.
+        /// - If UPDATE/DELETE requested but ID not found → FAIL immediately.
+        /// - Builds FHIR XML bundles for Patient/Encounter/Questionnaire.
+        /// - Submits bundle to CIHI and updates ID cache if new IDs are created.
         /// </summary>
-        /// <param name="datPath">Full path to the queued .dat file.</param>
-        /// <param name="outputFolder">Folder where XML outputs are written.</param>
-        /// <param name="timestamp">Timestamp for naming outputs.</param>
-        /// <param name="apiClient">CIHI API client.</param>
-        /// <param name="logger">Logger instance.</param>
-        /// <param name="runLogFile">Path to the run log file.</param>
-        /// <param name="fallbackFiscal">Fiscal year parsed from filename (used if ADMIN missing).</param>
-        /// <param name="fallbackQuarterRaw">Quarter parsed from filename (e.g., "Q2").</param>
-        /// <returns>
-        /// Tuple (Passed, Admin) where:
-        ///   Passed = true if considered successful based on API response; false otherwise.
-        ///   Admin  = AdminMetadata with normalized IDs/operations and routing fields.
-        /// </returns>
-        /// <exception cref="IOException">Thrown on I/O failures while saving XML files.</exception>
-        /// <exception cref="XmlException">Thrown if generated XML cannot be parsed or serialized.</exception>
         private static async Task<(bool Passed, AdminMetadata Admin)> ProcessSingleFileAsync(
             string datPath,
             string outputFolder,
@@ -225,7 +215,8 @@ namespace IFIC.Runner
             ILogger logger,
             string runLogFile,
             string fallbackFiscal,
-            string fallbackQuarterRaw)
+            string fallbackQuarterRaw,
+            Dictionary<string, string> savedIdsByKey)
         {
             // Parse the flat file into structured data
             var parser = new FlatFileParser();
@@ -256,7 +247,57 @@ namespace IFIC.Runner
                 Quarter = $"{quarterOnly}-{fiscalYear}"
             };
 
-            // Build patient, encounter, and questionnaire bundles if applicable
+            // ============================================================
+            // 🔑 If not FIRST ASSESSMENT, try to reuse existing CIHI IDs
+            // ============================================================
+            if (!string.Equals(adminMeta.AsmType, "FIRST ASSESSMENT", StringComparison.OrdinalIgnoreCase))
+            {
+                // Patient ID lookup
+                if (!string.IsNullOrWhiteSpace(adminMeta.FhirPatKey) &&
+                    savedIdsByKey.TryGetValue(adminMeta.FhirPatKey, out var cachedPatId))
+                {
+                    adminMeta.FhirPatID = cachedPatId;
+                }
+
+                // Encounter ID lookup
+                if (!string.IsNullOrWhiteSpace(adminMeta.FhirEncKey) &&
+                    savedIdsByKey.TryGetValue(adminMeta.FhirEncKey, out var cachedEncId))
+                {
+                    adminMeta.FhirEncID = cachedEncId;
+                }
+
+                // QuestionnaireResponse ID lookup
+                if (!string.IsNullOrWhiteSpace(adminMeta.RecId) &&
+                    savedIdsByKey.TryGetValue(adminMeta.RecId, out var cachedAsmId))
+                {
+                    adminMeta.FhirAsmID = cachedAsmId;
+                }
+
+                // ============================================================
+                // 🚨 Guard clause: UPDATE/DELETE requires cached IDs
+                // ============================================================
+                if ((string.Equals(adminMeta.PatOper, "UPDATE", StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(adminMeta.PatOper, "DELETE", StringComparison.OrdinalIgnoreCase)) &&
+                    string.IsNullOrWhiteSpace(adminMeta.FhirPatID))
+                {
+                    logger.LogError("Missing required Patient ID for {Op} operation.", adminMeta.PatOper);
+                    File.AppendAllText(runLogFile, $"ERROR: Missing required Patient ID for {adminMeta.PatOper} operation.{Environment.NewLine}");
+                    return (false, adminMeta);
+                }
+
+                if ((string.Equals(adminMeta.EncOper, "UPDATE", StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(adminMeta.EncOper, "DELETE", StringComparison.OrdinalIgnoreCase)) &&
+                    string.IsNullOrWhiteSpace(adminMeta.FhirEncID))
+                {
+                    logger.LogError("Missing required Encounter ID for {Op} operation.", adminMeta.EncOper);
+                    File.AppendAllText(runLogFile, $"ERROR: Missing required Encounter ID for {adminMeta.EncOper} operation.{Environment.NewLine}");
+                    return (false, adminMeta);
+                }
+            }
+
+            // ============================================================
+            // Build bundles as normal
+            // ============================================================
             var patientBuilder = parsedFile.Patient.Any() ? new PatientXmlBuilder(adminMeta) : null;
             var encounterBuilder = parsedFile.Encounter.Any() ? new EncounterXmlBuilder(adminMeta) : null;
             var questionnaireResponseBuilder = parsedFile.AssessmentSections.Any() ? new QuestionnaireResponseBuilder(adminMeta) : null;
@@ -279,22 +320,17 @@ namespace IFIC.Runner
 
             bundleResponseDoc.Declaration = new XDeclaration("1.0", "UTF-8", null);
 
-            // Save final bundle to disk (ensuring XML declaration)
+            // Save final bundle to disk
             string outputPath = Path.Combine(outputFolder, $"fhir_bundle_{timestamp}.xml");
             SaveWithDeclaration(outputPath, bundleResponseDoc.ToString());
             logger.LogInformation("FHIR Bundle saved to: {OutputPath}", outputPath);
             File.AppendAllText(runLogFile, $"FHIR Bundle saved: {outputPath}{Environment.NewLine}");
-
-            // Save probe copy
-            var probePath = Path.Combine(outputFolder, $"_probe_sent_{timestamp}.xml");
-            SaveWithDeclaration(probePath, bundleResponseDoc.ToString());
 
             // Submit the bundle
             logger.LogInformation("Submitting bundle to CIHI...");
             File.AppendAllText(runLogFile, $"Submitting bundle at: {DateTime.Now}{Environment.NewLine}");
             await apiClient.SubmitXmlAsync(bundleResponseDoc.ToString());
 
-            // Capture API response text (if your client exposes it)
             string apiResponse = IRRSApiClient.clientMessage ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(apiResponse))
             {
@@ -304,10 +340,61 @@ namespace IFIC.Runner
             // Decide pass/fail FROM the API RESPONSE
             bool passed = EvaluatePassFailFromApiResponse(apiResponse);
 
+            // If it passes and creates new IDs → parse the response and update dictionary
+            if (passed)
+            {
+                CihiResponseParser.ExtractResourceIds(
+                    apiResponse,
+                    out string? patId,
+                    out string? encId,
+                    out string? qId);
+
+                UpdateSavedIds(savedIdsByKey, adminMeta, patId, encId, qId);
+            }
+
             logger.LogInformation("Submission evaluated as: {Status}", passed ? "PASS" : "FAIL");
             File.AppendAllText(runLogFile, $"Evaluated as {(passed ? "PASS" : "FAIL")}{Environment.NewLine}");
 
             return (passed, adminMeta);
+        }
+
+
+        /// <summary>
+        /// Updates or inserts CIHI resource IDs into the savedIdsByKey dictionary
+        /// based on AdminMetadata keys (Patient, Encounter, QuestionnaireResponse).
+        /// </summary>
+        /// <param name="savedIdsByKey">Dictionary storing key → CIHI ID mappings.</param>
+        /// <param name="adminMeta">AdminMetadata containing keys for lookup.</param>
+        /// <param name="patientId">Optional Patient ID returned from CIHI (null if not returned).</param>
+        /// <param name="encounterId">Optional Encounter ID returned from CIHI (null if not returned).</param>
+        /// <param name="questionnaireId">Optional QuestionnaireResponse ID returned from CIHI (null if not returned).</param>
+        public static void UpdateSavedIds(
+            Dictionary<string, string> savedIdsByKey,
+            AdminMetadata adminMeta,
+            string? patientId,
+            string? encounterId,
+            string? questionnaireId)
+        {
+            if (savedIdsByKey == null) throw new ArgumentNullException(nameof(savedIdsByKey));
+            if (adminMeta == null) throw new ArgumentNullException(nameof(adminMeta));
+
+            // Patient
+            if (!string.IsNullOrWhiteSpace(adminMeta.FhirPatKey) && !string.IsNullOrWhiteSpace(patientId))
+            {
+                savedIdsByKey[adminMeta.FhirPatKey] = patientId; // insert or update
+            }
+
+            // Encounter
+            if (!string.IsNullOrWhiteSpace(adminMeta.FhirEncKey) && !string.IsNullOrWhiteSpace(encounterId))
+            {
+                savedIdsByKey[adminMeta.FhirEncKey] = encounterId; // insert or update
+            }
+
+            // QuestionnaireResponse
+            if (!string.IsNullOrWhiteSpace(adminMeta.RecId) && !string.IsNullOrWhiteSpace(questionnaireId))
+            {
+                savedIdsByKey[adminMeta.RecId] = questionnaireId; // insert or update
+            }
         }
 
         /// <summary>
