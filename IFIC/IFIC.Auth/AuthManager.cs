@@ -119,13 +119,13 @@ namespace IFIC.Auth
             using var doc = JsonDocument.Parse(responseContent);
             var token = doc.RootElement.GetProperty("access_token").GetString();
 
-            //To get token for use in powershell
-            logger.LogInformation("Access token successfully extracted from response.");
-            Console.WriteLine("Access token successfully received and ready to use.");
+            ////To get token for use in powershell
+            //logger.LogInformation("Access token successfully extracted from response.");
+            //Console.WriteLine("Access token successfully received and ready to use.");
 
-            // DEBUG: log full token (remove in production!)
-            Console.WriteLine("DEBUG: Access Token = " + token);
-            logger.LogInformation("DEBUG: Access Token = {Token}", token);
+            //// DEBUG: log full token (remove in production!)
+            //Console.WriteLine("DEBUG: Access Token = " + token);
+            //logger.LogInformation("DEBUG: Access Token = {Token}", token);
 
 
             logger.LogInformation("Access token successfully extracted from response.");

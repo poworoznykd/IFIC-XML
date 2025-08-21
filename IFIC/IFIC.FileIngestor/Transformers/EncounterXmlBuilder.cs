@@ -92,7 +92,7 @@ namespace IFIC.FileIngestor.Transformers
 
             // Create Bundle document
             var result = new XElement(ns + "entry",
-                new XElement(ns + "fullUrl", new XAttribute("value", $"urn:uuid:{encounterId}")),
+                new XElement(ns + "fullUrl", new XAttribute("value", $"Encounter/{encounterId}")),
                 new XElement(ns + "resource",
                     new XElement(ns + "Encounter",
                     new XAttribute("xmlns", ns),
@@ -364,7 +364,9 @@ namespace IFIC.FileIngestor.Transformers
                                 //),
                                 !string.IsNullOrWhiteSpace(dischargedToFacilityNumber)
                                 ?new XElement(ns + "destination",
+                                    new XElement(ns + "reference",
                                         new XAttribute("value", "#dischargedTo")
+                                    )
                                 ) : null
                             )
                             : null,
@@ -472,19 +474,22 @@ namespace IFIC.FileIngestor.Transformers
                 case "CORRECTION":
                     return new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "PUT")),
-                        new XElement(ns + "url", new XAttribute("value", $"/Encounter/{encounterId}"))
+                        //new XElement(ns + "url", new XAttribute("value", $"/Encounter/{encounterId}"))
+                        new XElement(ns + "url", new XAttribute("value", $"/Encounter"))
                     );
 
                 case "UPDATE":
                     return new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "POST")),
-                        new XElement(ns + "url", new XAttribute("value", $"/Encounter/{encounterId}/$update"))
+                        //new XElement(ns + "url", new XAttribute("value", $"/Encounter/{encounterId}/$update"))
+                        new XElement(ns + "url", new XAttribute("value", $"Encounter/$update"))
                     );
 
                 case "DELETE":
                     return new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "DELETE")),
-                        new XElement(ns + "url", new XAttribute("value", $"/Encounter/{encounterId}"))
+                        //new XElement(ns + "url", new XAttribute("value", $"/Encounter/{encounterId}"))
+                        new XElement(ns + "url", new XAttribute("value", $"/Encounter"))
                     );
 
                 case "USE":

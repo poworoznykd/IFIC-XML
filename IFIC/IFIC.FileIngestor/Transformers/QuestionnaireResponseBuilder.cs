@@ -3546,15 +3546,15 @@ namespace IFIC.FileIngestor.Transformers
                             new XElement(ns + "linkId", SafeAttr("value", $"R3")),
                                 new XElement(ns + "answer",
                                     new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", dischargeToFacilityNumber))
+                                        new XElement(ns + "code", SafeAttr("value", homeCareServicesScheduledAtDischarge))
                                     )
                                 )
-                            ),
+                            ), 
                             //new XElement(ns + "item",
                             //new XElement(ns + "linkId", SafeAttr("value", $"R4")),
                             //    new XElement(ns + "answer",
                             //        new XElement(ns + "valueCoding",
-                            //            new XElement(ns + "code", SafeAttr("value", homeCareServicesScheduledAtDischarge))
+                            //            new XElement(ns + "code", SafeAttr("value", dischargeToFacilityNumber))
                             //        )
                             //    )
                             //),
@@ -3714,20 +3714,20 @@ namespace IFIC.FileIngestor.Transformers
             ParsedFlatFile parsedFile,
             string encounterId)
         {
-            if (AdminData.EncOper == "USE")
+            if (AdminData.EncOper == "CREATE")
+            {
+                return new XElement(ns + "context",
+                   new XElement(ns + "reference",
+                       new XAttribute("value", $"urn:uuid:{encounterId}")
+                   )
+               );
+            }
+            else
             {
                 return new XElement(ns + "context",
                    new XElement(ns + "reference",
                        new XAttribute("value", $"Encounter/{encounterId}")
                    )
-                );
-            }
-            else
-            {
-                return new XElement(ns + "context",
-                    new XElement(ns + "reference",
-                        new XAttribute("value", $"urn:uuid:{encounterId}")
-                    )
                 );
             }
 
