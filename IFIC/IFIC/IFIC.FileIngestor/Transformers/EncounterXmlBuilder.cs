@@ -80,7 +80,9 @@ namespace IFIC.FileIngestor.Transformers
         public XElement BuildEncounterEntry(
             ParsedFlatFile parsedFile,
             string patientId,
-            string encounterId, string encOper)
+            string encounterId, 
+            string encOper, 
+            bool isReturnAssess)
         {
             // SEANNIE 
             // iCodes for iA7 don't go from iA7a to iA7k - the element codes do :(
@@ -365,8 +367,13 @@ namespace IFIC.FileIngestor.Transformers
                            // the #dischargedTo reference should be written out if the
                            // "dischargedTo" was populated (element R2) - not if R4 was populated
                            //
+                           // Also - if this is a RETURN assessment - then we need to tell CIHI
+                           // **especially** if this is a combo discharge/return - because they are 
+                           // soooo STUPID and they cannot tell a combo first/discharge from a 
+                           // combo return/discharge -- Jesus, Mary, Joseph!!!
                            !string.IsNullOrWhiteSpace(admittedFrom) ||
-                           !string.IsNullOrWhiteSpace(dischargedTo)
+                           !string.IsNullOrWhiteSpace(dischargedTo) ||
+                           (isReturnAssess)
                             ?new XElement(ns + "hospitalization",
                                 !string.IsNullOrWhiteSpace(admittedFrom)
                                 ?new XElement(ns + "origin",
@@ -374,11 +381,20 @@ namespace IFIC.FileIngestor.Transformers
                                         new XAttribute("value", "#admittedFrom")
                                     )
                                 ) : null,
-                                //new XElement(ns + "reAdmission",
+                                (isReturnAssess)
+                                ?new XElement(ns + "reAdmission",
+                                // SEANNIE
+                                // original syntax was wrong in the coding -- needed to fix
+                                //
                                 //    new XElement(ns + "coding",
-                                //        new XAttribute("code", 1)//TODO - hard coded? (1 = Yes, 2 = No, 3 = Unknown?)
+                                //        new XAttribute("value", 1)//TODO - hard coded? (1 = Yes, 2 = No, 3 = Unknown?)
                                 //    )
-                                //),
+                                    new XElement(ns + "coding",
+                                        new XElement(ns + "code",
+                                           new XAttribute("value", "1")
+                                        )
+                                    )
+                                ) : null,
                                 !string.IsNullOrWhiteSpace(dischargedTo)
                                 ?new XElement(ns + "destination",
                                     new XElement(ns + "reference",
@@ -551,11 +567,22 @@ namespace IFIC.FileIngestor.Transformers
             patientId = string.IsNullOrEmpty(patientId) ? Guid.NewGuid().ToString() : patientId;
             encounterId = string.IsNullOrEmpty(encounterId) ? Guid.NewGuid().ToString() : encounterId;
 
+            // SEANNIE
+            // - need to know if this is a return assessment or not so we can add the 
+            //   "reAdmission" tag to the <hospitalization> element in the encounter entry
+            //   if need be ... fuck me!  Why did CIHI make this soooo complicated?!?!?
+            //
+            bool isReturnAssessment = false;
+            if(AdminData.AsmType.Contains("return", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                isReturnAssessment = true;
+            }
+
             // Create Bundle document
             var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
                 new XElement(ns + "id", new XAttribute("value", bundleId)),
                 new XElement(ns + "type", new XAttribute("value", "transaction")),
-                BuildEncounterEntry(parsedFile, patientId, encounterId, encOper)
+                BuildEncounterEntry(parsedFile, patientId, encounterId, encOper, isReturnAssessment)
             );
 
             return bundle;

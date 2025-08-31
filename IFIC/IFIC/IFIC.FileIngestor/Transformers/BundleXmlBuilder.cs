@@ -81,10 +81,21 @@ namespace IFIC.FileIngestor.Transformers
 //            {
                 if (encounterXmlBuilder != null && adminMeta.EncOper != "USE")
                 {
-                    var encounterEntry = encounterXmlBuilder.BuildEncounterEntry(
+                    // SEANNIE
+                    // - need to know if this is a return assessment or not so we can add the 
+                    //   "reAdmission" tag to the <hospitalization> element in the encounter entry
+                    //   if need be ... fuck me!  Why did CIHI make this soooo complicated?!?!?
+                    //
+                    bool isReturnAssessment = false;
+                    if (adminMeta.AsmType.Contains("return", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        isReturnAssessment = true;
+                    }
+
+                var encounterEntry = encounterXmlBuilder.BuildEncounterEntry(
                         parsedFile,
                         patientId,
-                        encounterId, adminMeta.EncOper
+                        encounterId, adminMeta.EncOper, isReturnAssessment
                     );
                     bundleElements.Add(encounterEntry);
                 }
