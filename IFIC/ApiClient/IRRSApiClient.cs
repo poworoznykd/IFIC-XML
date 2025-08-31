@@ -129,13 +129,22 @@ namespace IFIC.ApiClient
                 );
 
                 Console.WriteLine($"Submission failed: {response.StatusCode}");
-                throw new HttpRequestException($"CIHI submission failed: {"Transaction ID: " + transactionId + " "} {response.StatusCode} - {responseContent}");
-            }
 
-            // Success
-            logger.LogInformation("Submission successful. CIHI Response: {Response}", responseContent);
-            Console.WriteLine("Submission successful.");
-            clientMessage = $"CIHI submission: {"Transaction ID: " + transactionId + " "} {response.StatusCode} - {responseContent}";
+                // SEANNIE
+                // instead of throwing an exception here - let's try completing the processing the same
+                // way as if the message was sent and processed properly - I mean it only ended in a 
+                // different kind of error ?!?!
+                clientMessage = $"CIHI submission: {"Transaction ID: " + transactionId + " "} {response.StatusCode} - {responseContent}";
+
+                //throw new HttpRequestException($"CIHI submission failed: {"Transaction ID: " + transactionId + " "} {response.StatusCode} - {responseContent}");
+            }
+            else    // SEANNIE - not needed if we are throwing exception above
+            {
+                // Success
+                logger.LogInformation("Submission successful. CIHI Response: {Response}", responseContent);
+                Console.WriteLine("Submission successful.");
+                clientMessage = $"CIHI submission: {"Transaction ID: " + transactionId + " "} {response.StatusCode} - {responseContent}";
+            }
         }
 
     }

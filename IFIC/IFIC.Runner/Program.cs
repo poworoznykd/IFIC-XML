@@ -166,6 +166,11 @@ namespace IFIC.Runner
 
                             RouteDatFile(datPath, adminMeta, passed, transmitRoot);
                             logger.LogInformation("Routed {File} to {Status}.", Path.GetFileName(datPath), passed ? "Processed" : "Errored");
+
+                            // move output <BUNDLE> xml to folder
+                            RouteDatFile(outputFolder+"\\"+ Path.GetFileNameWithoutExtension(datPath) + ".xml", adminMeta, passed, transmitRoot);
+                            logger.LogInformation("Routed {File} to {Status}.", Path.GetFileNameWithoutExtension(datPath)+".xml", passed ? "Processed" : "Errored");
+
                         }
                         catch (Exception ex)
                         {
@@ -223,6 +228,21 @@ namespace IFIC.Runner
             var parser = new FlatFileParser();
             var parsedFile = parser.Parse(datPath);
 
+            // pull the baseFilename out of the full "datPath" file - use this base name
+            //  - NOTE: in order to keep the "baseFileName" string in scope - I couldn't do
+            //          proper error checking on the lastBackSlash position found - assuming
+            //          it will always find one :)
+            //
+            //  ** Sorry Darryl - I noticed you had some methods for finding the filename,
+            //     fileextension, etc - after I wrote this code
+            int lastBackSlash = datPath.LastIndexOf('\\');
+            string fullDatFilename = datPath.Substring(lastBackSlash + 1);
+            string baseFileName = fullDatFilename.Substring(0, (fullDatFilename.Length - 4));
+
+            // also use the lastBackSlash (which points to the "Queued" folder to create the
+            // "RunLogs" output folder for the CIHI response output
+            string runLogsDir = datPath.Substring(0, (lastBackSlash - 7)) + "\\RunLogs";
+            
             // Build strongly-typed ADMIN from the parser's dictionary
             AdminMetadata adminMeta = AdminMetadata.FromParsedFlatFile(parsedFile);
 
@@ -248,8 +268,8 @@ namespace IFIC.Runner
                 Quarter = $"{quarterOnly}-{fiscalYear}"
             };
 
-            // If not FIRST ASSESSMENT, try to reuse existing CIHI IDs
-            if (!string.Equals(adminMeta.AsmType, "FIRST ASSESSMENT", StringComparison.OrdinalIgnoreCase))
+            // If not FIRST ASSESSMENT or RETURN, try to reuse existing CIHI IDs
+            if (!string.Equals(adminMeta.AsmType, "FIRST ASSESSMENT", StringComparison.OrdinalIgnoreCase) && !string.Equals(adminMeta.AsmType, "RETURN ASSESSMENT", StringComparison.OrdinalIgnoreCase))
             {
                 // Patient ID lookup
                 if (!string.IsNullOrWhiteSpace(adminMeta.FhirPatKey) &&
@@ -315,7 +335,10 @@ namespace IFIC.Runner
             bundleResponseDoc.Declaration = new XDeclaration("1.0", "UTF-8", null);
 
             // Save final bundle to disk
-            string outputPath = Path.Combine(outputFolder, $"fhir_bundle_{timestamp}.xml");
+            //string outputPath = Path.Combine(outputFolder, $"fhir_bundle_{timestamp}.xml");
+
+            // use the same baseFilename as the input data file
+            string outputPath = Path.Combine(outputFolder, baseFileName+".xml");
             SaveWithDeclaration(outputPath, bundleResponseDoc.ToString());
             logger.LogInformation("FHIR Bundle saved to: {OutputPath}", outputPath);
             File.AppendAllText(runLogFile, $"FHIR Bundle saved: {outputPath}{Environment.NewLine}");
@@ -331,8 +354,10 @@ namespace IFIC.Runner
                 File.AppendAllText(runLogFile, apiResponse + Environment.NewLine);
             }
 
-            // Decide pass/fail FROM the API RESPONSE
-            bool passed = EvaluatePassFailFromApiResponse(apiResponse);
+            // Decide pass/fail FROM the API RESPONSE  
+            //  - had to pass "datPath" in so I could write out the "runlog_..." error in the 
+            //    <catch> block - sorry Darryl :)
+            bool passed = EvaluatePassFailFromApiResponse(apiResponse, datPath);
 
             // If it passes and creates new IDs → parse the response and update dictionary
             if (passed)
@@ -349,6 +374,16 @@ namespace IFIC.Runner
             logger.LogInformation("Submission evaluated as: {Status}", passed ? "PASS" : "FAIL");
             File.AppendAllText(runLogFile, $"Evaluated as {(passed ? "PASS" : "FAIL")}{Environment.NewLine}");
 
+            // SEANNIE
+            int bundStart = apiResponse.IndexOf('<');
+            string respBund = apiResponse.Substring(bundStart);
+            string respFile = runLogsDir + "\\Errored\\runlog_" + baseFileName + ".xml";
+            if(passed) respFile = runLogsDir + "\\Processed\\runlog_" + baseFileName + ".xml";
+            SaveWithDeclaration(respFile, respBund);
+
+            // SEANNIE
+            // - update the LTCF SubmissionStatus table 
+            //    "update SubmssionStatus set status='{PASS|FAIL}' where status='QUEUED' and rec_id="+adminMeta.RecId
             return (passed, adminMeta);
         }
 
@@ -458,7 +493,7 @@ namespace IFIC.Runner
         /// </summary>
         /// <param name="apiResponse">Raw response text captured from the API client.</param>
         /// <returns>True if considered pass; false if considered fail.</returns>
-        private static bool EvaluatePassFailFromApiResponse(string apiResponse)
+        private static bool EvaluatePassFailFromApiResponse(string apiResponse, string datPath)
         {
             if (string.IsNullOrWhiteSpace(apiResponse))
             {
@@ -514,6 +549,27 @@ namespace IFIC.Runner
             }
             catch
             {
+                int lastBackSlash = datPath.LastIndexOf('\\');
+                string fullDatFilename = datPath.Substring(lastBackSlash + 1);
+                string baseFileName = fullDatFilename.Substring(0, (fullDatFilename.Length - 4));
+
+                // also use the lastBackSlash (which points to the "Queued" folder to create the
+                // "RunLogs" output folder for the CIHI response output
+                string runLogsDir = datPath.Substring(0, (lastBackSlash - 7)) + "\\RunLogs";
+
+                // since we are in a <catch> block, we are clearly in a FAIL position
+                int bundStart = apiResponse.IndexOf('<');
+                string respBund = apiResponse.Substring(bundStart);
+                string respFile = runLogsDir + "\\Errored\\runlog_" + baseFileName + ".xml";
+                //if (passed) respFile = runLogsDir + "\\Processed\\runlog_" + baseFileName + ".xml";
+                SaveWithDeclaration(respFile, respBund);
+
+                // SEANNIE
+                // - update the LTCF SubmissionStatus table
+                //    - in this case it is always FAIL?
+                //    "update SubmssionStatus set status='{PASS|FAIL}' where status='QUEUED' and rec_id="+adminMeta.RecId
+
+
                 var lower = apiResponse.ToLowerInvariant();
                 if (lower.Contains("operationoutcome") && lower.Contains("severity") && (lower.Contains("error") || lower.Contains("fatal")))
                     return false;
@@ -619,12 +675,12 @@ namespace IFIC.Runner
             File.Move(datPath, targetDat, overwrite: true);
 
             // Move matching .xml if present (same basename)
-            string xmlCandidate = Path.ChangeExtension(datPath, ".xml");
-            if (File.Exists(xmlCandidate))
-            {
-                string targetXml = Path.Combine(destFolder, Path.GetFileName(xmlCandidate));
-                File.Move(xmlCandidate, targetXml, overwrite: true);
-            }
+//            string xmlCandidate = Path.ChangeExtension(datPath, ".xml");
+//            if (File.Exists(xmlCandidate))
+//            {
+//                string targetXml = Path.Combine(destFolder, Path.GetFileName(xmlCandidate));
+//                File.Move(xmlCandidate, targetXml, overwrite: true);
+//            }
         }
 
         /// <summary>

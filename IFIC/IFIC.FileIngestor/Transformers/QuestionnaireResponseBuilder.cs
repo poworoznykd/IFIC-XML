@@ -1,6 +1,7 @@
 ﻿using IFIC.FileIngestor.Models;
 using Microsoft.Extensions.Options;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Utilities.Encoders;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -94,10 +95,15 @@ namespace IFIC.FileIngestor.Transformers
             ParsedFlatFile parsedFile,
             string patientId,
             string encounterId,
-            string questionnaireResponseId)
+            string questionnaireResponseId,
+            string asmOper)
         {
 
             XAttribute SafeAttr(XName name, string value) => string.IsNullOrWhiteSpace(value) ? null : new XAttribute(name, value);
+
+            string fullUrlEntry = "QuestionnaireResponse/";   //SEANNIE
+            if (asmOper.CompareTo("CREATE") == 0) fullUrlEntry = "urn:uuid:";
+
 
             #region Initialize Variables
             var genderIdentity = "";
@@ -866,7 +872,7 @@ namespace IFIC.FileIngestor.Transformers
 
             parsedFile.Patient.TryGetValue("OrgID", out var orgId);
             var entry = new XElement(ns + "entry",
-                new XElement(ns + "fullUrl", SafeAttr("value", $"urn:uuid:{questionnaireResponseId}")),
+                new XElement(ns + "fullUrl", SafeAttr("value", $"{fullUrlEntry}{questionnaireResponseId}")),
                 new XElement(ns + "resource",
                     new XElement(ns + "QuestionnaireResponse",
                         new XAttribute("xmlns", ns),
@@ -2975,6 +2981,55 @@ namespace IFIC.FileIngestor.Transformers
                         // Section N
                         new XElement(ns + "item",
                             new XElement(ns + "linkId", SafeAttr("value", "N")),
+
+                            // SEANNIE
+                            // N1 - the drug question - for vendor testing
+                            // just uncomment for test 2-1.2
+//                            new XElement(ns + "item",
+//                                new XElement(ns + "linkId", SafeAttr("value", "N1")),
+//                                new XElement(ns + "item",
+//                                    new XElement(ns + "linkId", SafeAttr("value", "N1b1")),
+//                                    new XElement(ns + "answer",
+//                                        new XElement(ns + "valueDecimal", SafeAttr("value", "1")
+//                                    ))
+//                                ),
+//                                new XElement(ns + "item",
+//                                    new XElement(ns + "linkId", SafeAttr("value", "N1c1")),
+//                                    new XElement(ns + "answer",
+//                                    new XElement(ns + "valueCoding",
+//                                        new XElement(ns + "code", SafeAttr("value", "mg"))
+//                                    ))
+//                                ),
+//                                new XElement(ns + "item",
+//                                    new XElement(ns + "linkId", SafeAttr("value", "N1d1")),
+//                                    new XElement(ns + "answer",
+//                                    new XElement(ns + "valueCoding",
+//                                        new XElement(ns + "code", SafeAttr("value", "26643006"))
+//                                    ))
+//                                ),
+//                                new XElement(ns + "item",
+//                                    new XElement(ns + "linkId", SafeAttr("value", "N1e1")),
+//                                    new XElement(ns + "answer",
+//                                    new XElement(ns + "valueCoding",
+//                                        new XElement(ns + "code", SafeAttr("value", "229799001"))
+//                                    ))
+//                                ),
+//                                new XElement(ns + "item",
+//                                    new XElement(ns + "linkId", SafeAttr("value", "N1f1")),
+//                                    new XElement(ns + "answer",
+//                                    new XElement(ns + "valueCoding",
+//                                        new XElement(ns + "code", SafeAttr("value", "1"))
+//                                    ))
+//                                ),
+//                                new XElement(ns + "item",
+//                                    new XElement(ns + "linkId", SafeAttr("value", "N1g1")),
+//                                    new XElement(ns + "answer",
+//                                    new XElement(ns + "valueCoding",
+//                                        new XElement(ns + "code", SafeAttr("value", "312738"))
+//                                    ))
+//                                )
+//                            ),
+
                             new XElement(ns + "item",
                                 new XElement(ns + "linkId", SafeAttr("value", "N2")),
                                 new XElement(ns + "answer",
@@ -3464,13 +3519,16 @@ namespace IFIC.FileIngestor.Transformers
                                     )
                                 )
                             ),
+                            // SEANNIE
+                            //   - Darryl - copied the variables from P1a/P1b above into P2a/P2b below
+                            //            - had to correct
                                 new XElement(ns + "item",
                                 new XElement(ns + "linkId", SafeAttr("value", $"P2")),
                                 new XElement(ns + "item",
                                     new XElement(ns + "linkId", SafeAttr("value", $"P2a")),
                                     new XElement(ns + "answer",
                                         new XElement(ns + "valueCoding",
-                                            new XElement(ns + "code", SafeAttr("value", decisionMakerPersonalCare))
+                                            new XElement(ns + "code", SafeAttr("value", advanceDirectiveDoNotResuscitate))
                                         )
                                     )
                                 ),
@@ -3478,7 +3536,7 @@ namespace IFIC.FileIngestor.Transformers
                                     new XElement(ns + "linkId", SafeAttr("value", $"P2b")),
                                     new XElement(ns + "answer",
                                         new XElement(ns + "valueCoding",
-                                            new XElement(ns + "code", SafeAttr("value", decisionMakerProperty))
+                                            new XElement(ns + "code", SafeAttr("value", advanceDirectiveDoNotHospitalize))
                                         )
                                     )
                                 )
@@ -3549,7 +3607,7 @@ namespace IFIC.FileIngestor.Transformers
                                         new XElement(ns + "code", SafeAttr("value", homeCareServicesScheduledAtDischarge))
                                     )
                                 )
-                            ), 
+                            ),
                             //new XElement(ns + "item",
                             //new XElement(ns + "linkId", SafeAttr("value", $"R4")),
                             //    new XElement(ns + "answer",
@@ -3612,13 +3670,15 @@ namespace IFIC.FileIngestor.Transformers
                 case "CORRECTION":
                     return new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "PUT")),
-                        new XElement(ns + "url", new XAttribute("value", $"/QuestionnaireResponse/{questionnaireResponseId}"))
+//                        new XElement(ns + "url", new XAttribute("value", $"/QuestionnaireResponse/{questionnaireResponseId}"))
+                        new XElement(ns + "url", new XAttribute("value", $"/QuestionnaireResponse"))
                     );
 
                 case "DELETE":
                     return new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "DELETE")),
-                        new XElement(ns + "url", new XAttribute("value", $"/QuestionnaireResponse/{questionnaireResponseId}"))
+//                        new XElement(ns + "url", new XAttribute("value", $"/QuestionnaireResponse/{questionnaireResponseId}"))
+                        new XElement(ns + "url", new XAttribute("value", $"/QuestionnaireResponse"))
                     );
 
                 default:
@@ -3634,7 +3694,8 @@ namespace IFIC.FileIngestor.Transformers
         public XElement BuildQuestionnaireResponseBundleHeader(
             ParsedFlatFile parsedFile,
             string bundleId,
-            string questionnaireResponseId)
+            string questionnaireResponseId,
+            string asmOper)
         {
             XAttribute SafeAttr(XName name, string value) => string.IsNullOrWhiteSpace(value) ? null : new XAttribute(name, value);
 
@@ -3653,7 +3714,8 @@ namespace IFIC.FileIngestor.Transformers
                     parsedFile,
                     patientId,
                     encounterId,
-                    questionnaireResponseId)
+                    questionnaireResponseId,
+                    asmOper)
             );
         }
 
@@ -3668,10 +3730,15 @@ namespace IFIC.FileIngestor.Transformers
             {
                 throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
             }
+
+            string assessId = AdminData.FhirAsmID;
+            string assessOper = AdminData.AsmOper;
+
             XElement bundle = BuildQuestionnaireResponseBundleHeader(
                 parsedFile,
                 null,
-                null);
+                assessId, 
+                assessOper);
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
         }
 

@@ -33,7 +33,8 @@ namespace IFIC.FileIngestor.Transformers
         public XElement BuildPatientBundleHeader(
             ParsedFlatFile parsedFile,
             string bundleId,
-            string patientId)
+            string patientId,
+            string patOper)
         {
             // Generate unique IDs for resources
             bundleId = string.IsNullOrEmpty(bundleId) ? Guid.NewGuid().ToString() : bundleId;
@@ -45,7 +46,7 @@ namespace IFIC.FileIngestor.Transformers
             var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
                 new XElement(ns + "id", new XAttribute("value", bundleId)),
                 new XElement(ns + "type", new XAttribute("value", "transaction")),
-                BuildPatientEntry(parsedFile, patientId)
+                BuildPatientEntry(parsedFile, patientId, patOper)
             );
 
             return bundle;
@@ -57,8 +58,14 @@ namespace IFIC.FileIngestor.Transformers
         /// </summary>
         public XElement BuildPatientEntry(
             ParsedFlatFile parsedFile,
-            string patientId)
+            string patientId,
+            string patOper)
         {
+
+            string fullUrlEntry = "Patient/";   //SEANNIE
+            if (patOper.CompareTo("CREATE") == 0) fullUrlEntry = "urn:uuid:";
+
+
             // Extract patient values from [PATIENT] section
             parsedFile.Patient.TryGetValue("A5A", out var healthCardNumber);
             parsedFile.Patient.TryGetValue("A5B", out var province);
@@ -70,6 +77,20 @@ namespace IFIC.FileIngestor.Transformers
             parsedFile.Patient.TryGetValue("B6", out var postalCode);
             parsedFile.Patient.TryGetValue("OrgID", out var orgId);
 
+            // SEANNIE
+            // extra logic to handle the case of unknown/not-applicable HCN
+            string hcnExtension = "unknown";
+            if (healthCardNumber == "2") hcnExtension = "not-applicable";
+
+            // SEANNIE
+            // generate the Prov/Territory Issuing source URL 
+            //   - default to ON
+            string provIssuing = "https://fhir.infoway-inforoute.ca/NamingSystem/ca-on-patient-hcn";
+            if((province!="0") && (province!="1") && (province!="ON"))
+            {
+                // 0=unknown, 1=not-applicable and we defaulted to ON already
+                provIssuing = "https://fhir.infoway-inforoute.ca/NamingSystem/ca-"+province.ToLower()+ "-patient-healthcare-id";
+            }
             // Build Patient resource
             var patientResource = new XElement(ns + "Patient",
                 new XAttribute("xmlns", ns),
@@ -87,7 +108,9 @@ namespace IFIC.FileIngestor.Transformers
                     : null,
 
                 // Identifier - Health Card Number
-                !string.IsNullOrWhiteSpace(healthCardNumber) && healthCardNumber != "unknown"
+                //  SEANNIE - needed to add logic to catch the override logic for
+                //            HCN=1 (unknown) and 2 (not-applicable)
+                !string.IsNullOrWhiteSpace(healthCardNumber) && ((healthCardNumber != "1") && (healthCardNumber != "2"))
                     ? new XElement(ns + "identifier",
                         new XElement(ns + "type",
                             new XElement(ns + "coding",
@@ -95,10 +118,23 @@ namespace IFIC.FileIngestor.Transformers
                                 new XElement(ns + "code", new XAttribute("value", "JHN"))
                             )
                         ),
-                        new XElement(ns + "system", new XAttribute("value", "https://fhir.infoway-inforoute.ca/NamingSystem/ca-on-patient-hcn")),
+                        new XElement(ns + "system", new XAttribute("value", provIssuing)),
                         new XElement(ns + "value", new XAttribute("value", healthCardNumber))
                     )
-                    : null,
+                    // assume that if we get here that HCN = 1 or 2 and it is not NULL :)
+                    : 
+                    
+                    new XElement(ns + "identifier",
+                        new XElement(ns + "extension", new XAttribute("url", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-data-absent-reason"),
+                        new XElement(ns + "valueCode", new XAttribute("value", hcnExtension))),
+
+                        new XElement(ns + "type",
+                            new XElement(ns + "coding",
+                                new XElement(ns + "system", new XAttribute("value", "http://hl7.org/fhir/v2/0203")),
+                                new XElement(ns + "code", new XAttribute("value", "JHN"))
+                            )
+                        )
+                    ),
 
                 // Identifier - Case record number
                 !string.IsNullOrWhiteSpace(caseId)
@@ -160,7 +196,7 @@ namespace IFIC.FileIngestor.Transformers
 
             // Wrap full entry (resource + request)
             var result = new XElement(ns + "entry",
-                new XElement(ns + "fullUrl", new XAttribute("value", $"urn:uuid:{patientId}")),
+                new XElement(ns + "fullUrl", new XAttribute("value", $"{fullUrlEntry}{patientId}")),
                 new XElement(ns + "resource", patientResource),
                 BuildEntryPoint(patientId)   // NEW: delegate to BuildEntryPoint
             );
@@ -190,19 +226,26 @@ namespace IFIC.FileIngestor.Transformers
                 case "CORRECTION":
                     return new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "PUT")),
-                        new XElement(ns + "url", new XAttribute("value", $"/Patient/{patientId}"))
+//                        new XElement(ns + "url", new XAttribute("value", $"/Patient/{patientId}"))
+                        new XElement(ns + "url", new XAttribute("value", $"/Patient"))
                     );
 
                 case "UPDATE":
                     return new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "POST")),
-                        new XElement(ns + "url", new XAttribute("value", $"/Patient/{patientId}/$update"))
+//                        new XElement(ns + "url", new XAttribute("value", $"/Patient/{patientId}/$update"))
+                        new XElement(ns + "url", new XAttribute("value", $"/Patient/$update"))
                     );
 
+                    // SEANNIE
+                    // the DELETE method @CIHI requires the {patientID} as part of the entrypoint
+                    // unlike the UPDATE/CORRECTION method above -- I wish CIHI learned how to consistently
+                    // and correctly document their API
                 case "DELETE":
                     return new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "DELETE")),
                         new XElement(ns + "url", new XAttribute("value", $"/Patient/{patientId}"))
+                        //new XElement(ns + "url", new XAttribute("value", $"/Patient"))
                     );
 
                 case "USE":
@@ -225,11 +268,18 @@ namespace IFIC.FileIngestor.Transformers
                 throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
             }
 
+            // SEANNIE
+            // - add the passing of the patOper into the subsequent methods in order to properly
+            //   create the correct syntax in the "fullurl" for the entry
+            string patID = AdminData.FhirPatID;
+            string patOper = AdminData.PatOper;
+
             // Build header (patientId always comes from AdminData or fallback GUID)
             XElement bundle = BuildPatientBundleHeader(
                 parsedFile,
                 null,
-                AdminData.FhirPatID);
+                patID,
+                patOper);
 
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
         }

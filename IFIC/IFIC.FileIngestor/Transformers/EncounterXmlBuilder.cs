@@ -26,7 +26,9 @@ namespace IFIC.FileIngestor.Transformers
         /// <returns></returns>
         private List<XElement> CreateICodeA7Elements(ParsedFlatFile parsedFile)
         {
-            var coverageCodes = new[] { "iA7a", "iA7b", "iA7c", "iA7d", "iA7e", "iA7f", "iA7g", "iA7h", "iA7i", "iA7j", "iA7k" };
+            // SEANNIE 
+            // iCodes for iA7 don't go from iA7a to iA7k - the element codes do :(
+            var coverageCodes = new[] { "iA7a", "iA7b", "iA7j", "iA7d", "iA7i", "iA7k", "iA7e", "iA7l", "iA7f", "iA7n", "iA7m" };
             var coverageContainedElements = new List<XElement>();
 
             // Choose appropriate field for start date
@@ -78,21 +80,34 @@ namespace IFIC.FileIngestor.Transformers
         public XElement BuildEncounterEntry(
             ParsedFlatFile parsedFile,
             string patientId,
-            string encounterId)
+            string encounterId, string encOper)
         {
-            var coverageCodes = new[] { "iA7a", "iA7b", "iA7c", "iA7d", "iA7e", "iA7f", "iA7g", "iA7h", "iA7i", "iA7j", "iA7k" };
+            // SEANNIE 
+            // iCodes for iA7 don't go from iA7a to iA7k - the element codes do :(
+            var coverageCodes = new[] { "iA7a", "iA7b", "iA7j", "iA7d", "iA7i", "iA7k", "iA7e", "iA7l", "iA7f", "iA7n", "iA7m" };
 
+            string fullUrlEntry = "Encounter/";   //SEANNIE
+            if (encOper.CompareTo("CREATE") == 0) fullUrlEntry = "urn:uuid:";
+
+            // SEANNIE
+            // Question - why is A12 not here?  B2 and A12 should be here 
+            //    on a RETURN assessment, B2 won't be here, but A12 will be
+            //    yet somehow magically encounters are magically being created for RETURNS
+            //    - it must be being filled in somewhere else??
+            //
+            // changed "livingStatus" variable name to "dischargedTo" to be consistent with
+            // "admittedFrom" variable
             parsedFile.Encounter.TryGetValue("B5A", out var admittedFrom);
             parsedFile.Encounter.TryGetValue("B2", out var stayStartDate);
             parsedFile.Encounter.TryGetValue("R1", out var stayEndDate);
             parsedFile.Encounter.TryGetValue("B5B", out var admittedFromFacilityNumber);
             parsedFile.Encounter.TryGetValue("OrgID", out var orgId);
-            parsedFile.Encounter.TryGetValue("R2", out var livingStatus);
+            parsedFile.Encounter.TryGetValue("R2", out var dischargedTo);
             parsedFile.Encounter.TryGetValue("R4", out var dischargedToFacilityNumber);
 
             // Create Bundle document
             var result = new XElement(ns + "entry",
-                new XElement(ns + "fullUrl", new XAttribute("value", $"Encounter/{encounterId}")),
+                new XElement(ns + "fullUrl", new XAttribute("value", $"{fullUrlEntry}{encounterId}")),
                 new XElement(ns + "resource",
                     new XElement(ns + "Encounter",
                     new XAttribute("xmlns", ns),
@@ -158,9 +173,12 @@ namespace IFIC.FileIngestor.Transformers
                         : null,
 
                         // contained - discharged to
+                        // SEANNIE
+                        // - the writing of this section should only be conditional
+                        //   on the presence of the "dischargeTo" variable
                         !string.IsNullOrWhiteSpace(orgId) &&
-                        !string.IsNullOrWhiteSpace(livingStatus) &&
-                        !string.IsNullOrWhiteSpace(dischargedToFacilityNumber)
+                        !string.IsNullOrWhiteSpace(dischargedTo) //&&
+                        //!string.IsNullOrWhiteSpace(dischargedToFacilityNumber)
                             ? new XElement(ns + "contained",
                                 new XElement(ns + "Location",
                                     new XElement(ns + "id",
@@ -174,7 +192,7 @@ namespace IFIC.FileIngestor.Transformers
                                     new XElement(ns + "type",
                                         new XElement(ns + "coding",
                                             new XElement(ns + "code",
-                                                new XAttribute("value", livingStatus)
+                                                new XAttribute("value", dischargedTo)
                                             )
                                         )
                                     ),
@@ -188,10 +206,11 @@ namespace IFIC.FileIngestor.Transformers
                             )
                             : null,
             #region Commented Code
+// SEANNIE
 //// contained - program type 1
 //!string.IsNullOrWhiteSpace(patientId) &&
-//!string.IsNullOrWhiteSpace(stayStartDate) &&
-//!string.IsNullOrWhiteSpace(stayEndDate)
+//!string.IsNullOrWhiteSpace(stayStartDate) 
+////!string.IsNullOrWhiteSpace(stayEndDate)   // SEANNIE don't need the stayEndDate to have a program
 //    ? new XElement(ns + "contained",
 //        new XElement(ns + "Encounter",
 //            new XElement(ns + "id",
@@ -204,13 +223,13 @@ namespace IFIC.FileIngestor.Transformers
 //            ),
 //            new XElement(ns + "status",
 //                new XElement(ns + "profile",
-//                    new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-encounter")
+//                    new XAttribute("value", "planned")     //SEANNIE - I believe this can be hardcoded as "planned"
 //                )
 //            ),
 //            new XElement(ns + "type",
 //                new XElement(ns + "coding",
 //                    new XElement(ns + "code",
-//                        new XAttribute("value", "PRT123") 
+//                        new XAttribute("value", "PRG02")  // SEANNIE - should be read from parameters really
 //                    )
 //                )
 //            ),
@@ -223,10 +242,10 @@ namespace IFIC.FileIngestor.Transformers
 //                new XElement(ns + "start",
 //                    new XAttribute("value", stayStartDate)
 //                ),
-//                new XElement(ns + "end",
-//                    new XAttribute("value", stayEndDate)
-//                )
-//            ),
+////                new XElement(ns + "end",
+////                    new XAttribute("value", stayEndDate)     // SEANNIE make this population conditional on stayEndDate not being null/blank
+////                )
+////            ),
 //            new XElement(ns + "serviceProvider",
 //                new XElement(ns + "identifier",
 //                    new XElement(ns + "system",
@@ -238,7 +257,7 @@ namespace IFIC.FileIngestor.Transformers
 //                )
 //            )
 //        )
-//    )
+//    ) )  // SEANNIE - had to add another ")"
 //    : null,
 
 // contained - ?
@@ -314,12 +333,6 @@ namespace IFIC.FileIngestor.Transformers
                             //    )
                             //),
 
-                            ////planned
-                            //new XElement(ns + "status",
-                            //    new XAttribute("value", "planned")
-                            //),
-
-
             #endregion
            
                         new XElement(ns + "status", new XAttribute("value", "planned")),
@@ -348,8 +361,12 @@ namespace IFIC.FileIngestor.Transformers
                             ) : null),
 
                            //Hospitalization
+                           // SEANNIE
+                           // the #dischargedTo reference should be written out if the
+                           // "dischargedTo" was populated (element R2) - not if R4 was populated
+                           //
                            !string.IsNullOrWhiteSpace(admittedFrom) ||
-                           !string.IsNullOrWhiteSpace(dischargedToFacilityNumber)
+                           !string.IsNullOrWhiteSpace(dischargedTo)
                             ?new XElement(ns + "hospitalization",
                                 !string.IsNullOrWhiteSpace(admittedFrom)
                                 ?new XElement(ns + "origin",
@@ -362,11 +379,12 @@ namespace IFIC.FileIngestor.Transformers
                                 //        new XAttribute("code", 1)//TODO - hard coded? (1 = Yes, 2 = No, 3 = Unknown?)
                                 //    )
                                 //),
-                                !string.IsNullOrWhiteSpace(dischargedToFacilityNumber)
+                                !string.IsNullOrWhiteSpace(dischargedTo)
                                 ?new XElement(ns + "destination",
                                     new XElement(ns + "reference",
                                         new XAttribute("value", "#dischargedTo")
                                     )
+//                                        new XAttribute("value", "#dischargedTo")
                                 ) : null
                             )
                             : null,
@@ -422,6 +440,14 @@ namespace IFIC.FileIngestor.Transformers
                 BuildEntryPoint(parsedFile, encounterId)
             );
 
+            // Wrap full entry (resource + request)
+//            var result = new XElement(ns + "entry",
+//                new XElement(ns + "fullUrl", new XAttribute("value", $"urn:uuid:{patientId}")),
+//                new XElement(ns + "resource", patientResource),
+//                BuildEntryPoint(patientId)   // NEW: delegate to BuildEntryPoint
+//            );
+
+
             return result;
         }
 
@@ -429,11 +455,14 @@ namespace IFIC.FileIngestor.Transformers
             ParsedFlatFile parsedFile,
             string patientId)
         {
-            if (AdminData.PatOper?.Equals("USE", StringComparison.OrdinalIgnoreCase) == true)
+            // SEANNIE
+            // I believe that the "Patient" source reference should be "Patient/..."
+            // except in the case of creating the patient resource
+            if (AdminData.PatOper?.Equals("CREATE", StringComparison.OrdinalIgnoreCase) == true)
             {
                 return new XElement(ns + "subject",
                     new XElement(ns + "reference",
-                        new XAttribute("value", $"Patient/{patientId}")
+                        new XAttribute("value", $"urn:uuid:{patientId}")
                     )
                 );
             }
@@ -441,7 +470,7 @@ namespace IFIC.FileIngestor.Transformers
             {
                 return new XElement(ns + "subject",
                     new XElement(ns + "reference",
-                        new XAttribute("value", $"urn:uuid:{patientId}")
+                        new XAttribute("value", $"Patient/{patientId}")
                     )
                 );
             }
@@ -482,14 +511,18 @@ namespace IFIC.FileIngestor.Transformers
                     return new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "POST")),
                         //new XElement(ns + "url", new XAttribute("value", $"/Encounter/{encounterId}/$update"))
-                        new XElement(ns + "url", new XAttribute("value", $"Encounter/$update"))
+                        new XElement(ns + "url", new XAttribute("value", $"/Encounter/$update"))
                     );
 
+                // SEANNIE
+                // the DELETE method @CIHI requires the {encounterID} as part of the entrypoint
+                // unlike the UPDATE/CORRECTION method above -- I wish CIHI learned how to consistently
+                // and correctly document their API
                 case "DELETE":
                     return new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "DELETE")),
-                        //new XElement(ns + "url", new XAttribute("value", $"/Encounter/{encounterId}"))
-                        new XElement(ns + "url", new XAttribute("value", $"/Encounter"))
+                        new XElement(ns + "url", new XAttribute("value", $"/Encounter/{encounterId}"))
+                        //new XElement(ns + "url", new XAttribute("value", $"/Encounter"))
                     );
 
                 case "USE":
@@ -510,7 +543,8 @@ namespace IFIC.FileIngestor.Transformers
             ParsedFlatFile parsedFile,
             string bundleId,
             string patientId,
-            string encounterId)
+            string encounterId, 
+            string encOper)
         {
             // Generate unique IDs for resources
             bundleId = string.IsNullOrEmpty(bundleId) ? Guid.NewGuid().ToString() : bundleId;
@@ -521,7 +555,7 @@ namespace IFIC.FileIngestor.Transformers
             var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
                 new XElement(ns + "id", new XAttribute("value", bundleId)),
                 new XElement(ns + "type", new XAttribute("value", "transaction")),
-                BuildEncounterEntry(parsedFile, patientId, encounterId)
+                BuildEncounterEntry(parsedFile, patientId, encounterId, encOper)
             );
 
             return bundle;
@@ -542,12 +576,14 @@ namespace IFIC.FileIngestor.Transformers
 
             string patientId = AdminData.FhirPatID;
             string encounterId = AdminData.FhirEncID;
+            string encOper = AdminData.EncOper;
 
             XElement bundle = BuildEncounterBundleHeader(
                 parsedFile,
                 null,
                 patientId,
-                encounterId);
+                encounterId,
+                encOper);
 
             return new XDocument(new XDeclaration("1.0", "UTF-8", "yes"), bundle);
         }
