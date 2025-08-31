@@ -316,11 +316,11 @@ namespace IFIC.Runner
             var encounterBuilder = parsedFile.Encounter.Any() ? new EncounterXmlBuilder(adminMeta) : null;
             var questionnaireResponseBuilder = parsedFile.AssessmentSections.Any() ? new QuestionnaireResponseBuilder(adminMeta) : null;
 
-            if (adminMeta.PatOper != "USE")
-                patientBuilder?.BuildPatientBundle(parsedFile);
-            if (adminMeta.EncOper != "USE")
-                encounterBuilder?.BuildEncounterBundle(parsedFile);
-            questionnaireResponseBuilder?.BuildQuestionnaireResponseBundle(parsedFile);
+            //if (adminMeta.PatOper != "USE")
+            //    patientBuilder?.BuildPatientBundle(parsedFile);
+            //if (adminMeta.EncOper != "USE")
+            //    encounterBuilder?.BuildEncounterBundle(parsedFile);
+            //questionnaireResponseBuilder?.BuildQuestionnaireResponseBundle(parsedFile);
 
             // Build the final full bundle
             var bundleBuilder = new BundleXmlBuilder();
@@ -374,7 +374,6 @@ namespace IFIC.Runner
             logger.LogInformation("Submission evaluated as: {Status}", passed ? "PASS" : "FAIL");
             File.AppendAllText(runLogFile, $"Evaluated as {(passed ? "PASS" : "FAIL")}{Environment.NewLine}");
 
-            // SEANNIE
             int bundStart = apiResponse.IndexOf('<');
             string respBund = apiResponse.Substring(bundStart);
             string respFile = runLogsDir + "\\Errored\\runlog_" + baseFileName + ".xml";

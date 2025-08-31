@@ -11,7 +11,7 @@ namespace IFIC.FileIngestor.Transformers
     public class EncounterXmlBuilder
     {
         private static readonly XNamespace ns = "http://hl7.org/fhir";
-        public string StartDate { get; set; }
+        public string? StartDate { get; set; }
         public AdminMetadata AdminData { get; set; }
 
         public EncounterXmlBuilder(AdminMetadata data)
@@ -23,19 +23,31 @@ namespace IFIC.FileIngestor.Transformers
         /// Creates the I code elements.
         /// </summary>
         /// <param name="parsedFile">The parsed flat file</param>
-        /// <returns></returns>
+        /// <returns>returns a list of elements</returns>
         private List<XElement> CreateICodeA7Elements(ParsedFlatFile parsedFile)
         {
-            // SEANNIE 
-            // iCodes for iA7 don't go from iA7a to iA7k - the element codes do :(
             var coverageCodes = new[] { "iA7a", "iA7b", "iA7j", "iA7d", "iA7i", "iA7k", "iA7e", "iA7l", "iA7f", "iA7n", "iA7m" };
             var coverageContainedElements = new List<XElement>();
 
-            // Choose appropriate field for start date
-            string dateFieldKey = AdminData.AsmType.Contains("return", StringComparison.OrdinalIgnoreCase) ? "A12" : "B2";
-            StartDate = parsedFile.Encounter.TryGetValue(dateFieldKey, out var rawDate) && !string.IsNullOrWhiteSpace(rawDate)
-                ? rawDate
-                : null; // no fallback; omit if missing
+            // Default StartDate to null
+            StartDate = null;
+
+            // Safely pick the field key
+            string? asmType = AdminData?.AsmType;
+            string dateFieldKey = !string.IsNullOrEmpty(asmType) &&
+                                  asmType.Contains("return", StringComparison.OrdinalIgnoreCase)
+                ? "A12"
+                : "B2";
+
+            // Ensure parsedFile and Encounter dictionary exist before lookup
+            if (parsedFile != null && parsedFile.Encounter != null)
+            {
+                if (parsedFile.Encounter.TryGetValue(dateFieldKey, out var rawDate) &&
+                    !string.IsNullOrWhiteSpace(rawDate))
+                {
+                    StartDate = rawDate;
+                }
+            }
 
             foreach (var code in coverageCodes)
             {
@@ -73,10 +85,6 @@ namespace IFIC.FileIngestor.Transformers
         /// <summary>
         /// Builds an Encounter entry element for the FHIR Bundle using parsed flat file data.
         /// </summary>
-        /// <param name="parsedFile"></param>
-        /// <param name="patientId"></param>
-        /// <param name="encounterId"></param>
-        /// <returns></returns>
         public XElement BuildEncounterEntry(
             ParsedFlatFile parsedFile,
             string patientId,
@@ -84,21 +92,12 @@ namespace IFIC.FileIngestor.Transformers
             string encOper, 
             bool isReturnAssess)
         {
-            // SEANNIE 
-            // iCodes for iA7 don't go from iA7a to iA7k - the element codes do :(
             var coverageCodes = new[] { "iA7a", "iA7b", "iA7j", "iA7d", "iA7i", "iA7k", "iA7e", "iA7l", "iA7f", "iA7n", "iA7m" };
 
-            string fullUrlEntry = "Encounter/";   //SEANNIE
-            if (encOper.CompareTo("CREATE") == 0) fullUrlEntry = "urn:uuid:";
+            string fullUrlEntry = "Encounter/";  
+            if (encOper.CompareTo("CREATE") == 0) 
+                    fullUrlEntry = "urn:uuid:";
 
-            // SEANNIE
-            // Question - why is A12 not here?  B2 and A12 should be here 
-            //    on a RETURN assessment, B2 won't be here, but A12 will be
-            //    yet somehow magically encounters are magically being created for RETURNS
-            //    - it must be being filled in somewhere else??
-            //
-            // changed "livingStatus" variable name to "dischargedTo" to be consistent with
-            // "admittedFrom" variable
             parsedFile.Encounter.TryGetValue("B5A", out var admittedFrom);
             parsedFile.Encounter.TryGetValue("B2", out var stayStartDate);
             parsedFile.Encounter.TryGetValue("R1", out var stayEndDate);
@@ -173,14 +172,8 @@ namespace IFIC.FileIngestor.Transformers
                             )
                         )
                         : null,
-
-                        // contained - discharged to
-                        // SEANNIE
-                        // - the writing of this section should only be conditional
-                        //   on the presence of the "dischargeTo" variable
                         !string.IsNullOrWhiteSpace(orgId) &&
-                        !string.IsNullOrWhiteSpace(dischargedTo) //&&
-                        //!string.IsNullOrWhiteSpace(dischargedToFacilityNumber)
+                        !string.IsNullOrWhiteSpace(dischargedTo)
                             ? new XElement(ns + "contained",
                                 new XElement(ns + "Location",
                                     new XElement(ns + "id",
@@ -354,23 +347,13 @@ namespace IFIC.FileIngestor.Transformers
                                 new XAttribute("value", stayEndDate)
                             ) : null
                         ),
-            #region Commented Code 3
                         (coverageCodes.Any(code => parsedFile.Encounter.ContainsKey(code) && !string.IsNullOrWhiteSpace(parsedFile.Encounter[code]))
                             ?new XElement(ns + "account",
                                 new XElement(ns + "reference",
                                     new XAttribute("value", "#paymentSource")
                                 )
                             ) : null),
-
                            //Hospitalization
-                           // SEANNIE
-                           // the #dischargedTo reference should be written out if the
-                           // "dischargedTo" was populated (element R2) - not if R4 was populated
-                           //
-                           // Also - if this is a RETURN assessment - then we need to tell CIHI
-                           // **especially** if this is a combo discharge/return - because they are 
-                           // soooo STUPID and they cannot tell a combo first/discharge from a 
-                           // combo return/discharge -- Jesus, Mary, Joseph!!!
                            !string.IsNullOrWhiteSpace(admittedFrom) ||
                            !string.IsNullOrWhiteSpace(dischargedTo) ||
                            (isReturnAssess)
@@ -383,12 +366,6 @@ namespace IFIC.FileIngestor.Transformers
                                 ) : null,
                                 (isReturnAssess)
                                 ?new XElement(ns + "reAdmission",
-                                // SEANNIE
-                                // original syntax was wrong in the coding -- needed to fix
-                                //
-                                //    new XElement(ns + "coding",
-                                //        new XAttribute("value", 1)//TODO - hard coded? (1 = Yes, 2 = No, 3 = Unknown?)
-                                //    )
                                     new XElement(ns + "coding",
                                         new XElement(ns + "code",
                                            new XAttribute("value", "1")
@@ -400,11 +377,10 @@ namespace IFIC.FileIngestor.Transformers
                                     new XElement(ns + "reference",
                                         new XAttribute("value", "#dischargedTo")
                                     )
-//                                        new XAttribute("value", "#dischargedTo")
                                 ) : null
                             )
                             : null,
-
+            #region Commented Code 3
                         ////MIS Function Centre
                         //!string.IsNullOrWhiteSpace(stayStartDate) && !string.IsNullOrWhiteSpace(stayEndDate)
                         //? new XElement(ns + "location",
@@ -443,7 +419,7 @@ namespace IFIC.FileIngestor.Transformers
                         //)
                         //: null,
             #endregion
-                        // Faciltiy/agnecy identifier this encounter is related to
+                        // Faciltiy/agency identifier this encounter is related to
                         !string.IsNullOrWhiteSpace(orgId)
                         ? new XElement(ns + "serviceProvider",
                             new XElement(ns + "identifier",
@@ -455,25 +431,19 @@ namespace IFIC.FileIngestor.Transformers
                 ),
                 BuildEntryPoint(parsedFile, encounterId)
             );
-
-            // Wrap full entry (resource + request)
-//            var result = new XElement(ns + "entry",
-//                new XElement(ns + "fullUrl", new XAttribute("value", $"urn:uuid:{patientId}")),
-//                new XElement(ns + "resource", patientResource),
-//                BuildEntryPoint(patientId)   // NEW: delegate to BuildEntryPoint
-//            );
-
-
             return result;
         }
 
+        /// <summary>
+        /// Builds the subject element
+        /// </summary>
+        /// <param name="parsedFile">The parsed file</param>
+        /// <param name="patientId">The id of the patient to be used.</param>
+        /// <returns></returns>
         private XElement BuildSubject(
             ParsedFlatFile parsedFile,
             string patientId)
         {
-            // SEANNIE
-            // I believe that the "Patient" source reference should be "Patient/..."
-            // except in the case of creating the patient resource
             if (AdminData.PatOper?.Equals("CREATE", StringComparison.OrdinalIgnoreCase) == true)
             {
                 return new XElement(ns + "subject",
@@ -499,7 +469,7 @@ namespace IFIC.FileIngestor.Transformers
         /// <param name="parsedFile">Parsed flat file (not directly used here).</param>
         /// <param name="encounterId">Encounter UUID or placeholder.</param>
         /// <returns>XElement representing the request element, or null for USE.</returns>
-        private XElement BuildEntryPoint(
+        private XElement? BuildEntryPoint(
             ParsedFlatFile parsedFile,
             string encounterId)
         {
@@ -529,11 +499,6 @@ namespace IFIC.FileIngestor.Transformers
                         //new XElement(ns + "url", new XAttribute("value", $"/Encounter/{encounterId}/$update"))
                         new XElement(ns + "url", new XAttribute("value", $"/Encounter/$update"))
                     );
-
-                // SEANNIE
-                // the DELETE method @CIHI requires the {encounterID} as part of the entrypoint
-                // unlike the UPDATE/CORRECTION method above -- I wish CIHI learned how to consistently
-                // and correctly document their API
                 case "DELETE":
                     return new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "DELETE")),
@@ -557,9 +522,9 @@ namespace IFIC.FileIngestor.Transformers
         /// <returns></returns>
         public XElement BuildEncounterBundleHeader(
             ParsedFlatFile parsedFile,
-            string bundleId,
-            string patientId,
-            string encounterId, 
+            string? bundleId,
+            string? patientId,
+            string? encounterId, 
             string encOper)
         {
             // Generate unique IDs for resources
@@ -567,13 +532,10 @@ namespace IFIC.FileIngestor.Transformers
             patientId = string.IsNullOrEmpty(patientId) ? Guid.NewGuid().ToString() : patientId;
             encounterId = string.IsNullOrEmpty(encounterId) ? Guid.NewGuid().ToString() : encounterId;
 
-            // SEANNIE
-            // - need to know if this is a return assessment or not so we can add the 
-            //   "reAdmission" tag to the <hospitalization> element in the encounter entry
-            //   if need be ... fuck me!  Why did CIHI make this soooo complicated?!?!?
-            //
             bool isReturnAssessment = false;
-            if(AdminData.AsmType.Contains("return", StringComparison.OrdinalIgnoreCase) == true)
+            if(AdminData != null &&
+                AdminData.AsmType != null &&
+                AdminData.AsmType.Contains("return", StringComparison.OrdinalIgnoreCase) == true)
             {
                 isReturnAssessment = true;
             }
@@ -601,9 +563,9 @@ namespace IFIC.FileIngestor.Transformers
                 throw new ArgumentNullException(nameof(parsedFile), "Parsed flat file cannot be null.");
             }
 
-            string patientId = AdminData.FhirPatID;
-            string encounterId = AdminData.FhirEncID;
-            string encOper = AdminData.EncOper;
+            string? patientId = AdminData.FhirPatID;
+            string? encounterId = AdminData.FhirEncID;
+            string? encOper = AdminData.EncOper;
 
             XElement bundle = BuildEncounterBundleHeader(
                 parsedFile,
