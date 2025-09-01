@@ -950,12 +950,12 @@ namespace IFIC.FileIngestor.Transformers
                                     : null
                             )
                             : null,
-                           !string.IsNullOrWhiteSpace(dailyDecisionMaking)
+                            !string.IsNullOrWhiteSpace(timeSinceLastVisit)
                             ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", $"C1")),
+                                new XElement(ns + "linkId", SafeAttr("value", $"A11")),
                                 new XElement(ns + "answer",
                                     new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", dailyDecisionMaking))
+                                        new XElement(ns + "code", SafeAttr("value", timeSinceLastVisit))
                                     )
                                 )
                             ) : null
@@ -1134,15 +1134,15 @@ namespace IFIC.FileIngestor.Transformers
                             new XElement(ns + "linkId",
                                 SafeAttr("value", $"C")
                             ),
-                            !string.IsNullOrWhiteSpace(timeSinceLastVisit)
-                            ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", $"C1")),
-                                new XElement(ns + "answer",
-                                    new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", timeSinceLastVisit))
+                            !string.IsNullOrWhiteSpace(dailyDecisionMaking)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", $"C1")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", dailyDecisionMaking))
+                                        )
                                     )
-                                )
-                            ) : null,
+                                ) : null,
                             !string.IsNullOrWhiteSpace(shortTermMemory) ||
                             !string.IsNullOrWhiteSpace(longTermMemory) ||
                             !string.IsNullOrWhiteSpace(proceduralMemory) ||
