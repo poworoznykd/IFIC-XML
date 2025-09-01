@@ -950,12 +950,12 @@ namespace IFIC.FileIngestor.Transformers
                                     : null
                             )
                             : null,
-                            !string.IsNullOrWhiteSpace(timeSinceLastVisit)
+                           !string.IsNullOrWhiteSpace(dailyDecisionMaking)
                             ? new XElement(ns + "item",
-                                new XElement(ns + "linkId", SafeAttr("value", $"A11")),
+                                new XElement(ns + "linkId", SafeAttr("value", $"C1")),
                                 new XElement(ns + "answer",
                                     new XElement(ns + "valueCoding",
-                                        new XElement(ns + "code", SafeAttr("value", timeSinceLastVisit))
+                                        new XElement(ns + "code", SafeAttr("value", dailyDecisionMaking))
                                     )
                                 )
                             ) : null
