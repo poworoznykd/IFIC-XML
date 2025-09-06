@@ -24,10 +24,11 @@
  *     - Program looks for input in <TransmitRoot>\Queued.
  *     - If not set, falls back to a repo-relative default path.
  */
-
+using IFIC.ClarityClient;   // ADO.NET client + options
+using IFIC.FileIngestor;   // ClarityLTCFUpdateService + AdminMetadataKeys
 using IFIC.ApiClient;
 using IFIC.Auth;
-using IFIC.FileIngestor.Models;      // AdminMetadata
+using IFIC.FileIngestor.Models;      
 using IFIC.FileIngestor.Parsers;
 using IFIC.FileIngestor.Transformers;
 using Microsoft.Extensions.Configuration;
@@ -61,8 +62,23 @@ namespace IFIC.Runner
             Console.WriteLine("===== IFIC Runner Starting =====");
 
             IHost host = CreateHostBuilder(args).Build();
+            var ltcfClient = host.Services.GetRequiredService<IClarityClient>();
+
+            bool dbOk = await ltcfClient.PingDatabaseAsync(CancellationToken.None);
+
+            if (dbOk)
+            {
+                Console.WriteLine("✅ Clarity LTCF database connection succeeded.");
+            }
+            else
+            {
+                Console.WriteLine("❌ Failed to connect to Clarity LTCF database. Check connection string.");
+            }
+
+
             var logger = host.Services.GetRequiredService<ILogger<Program>>();
             var apiClient = host.Services.GetRequiredService<IApiClient>();
+            var ltcfUpdateService = host.Services.GetRequiredService<ClarityLTCFUpdateService>();
             var config = host.Services.GetRequiredService<IConfiguration>();
             if (config != null && apiClient != null)
             {
@@ -161,8 +177,10 @@ namespace IFIC.Runner
                                 runLogFile,
                                 initialFiscal,
                                 initialQuarter,
-                                SavedIdsByKey
+                                SavedIdsByKey,
+                                ltcfUpdateService   
                             );
+
 
                             RouteDatFile(datPath, adminMeta, passed, transmitRoot);
                             logger.LogInformation("Routed {File} to {Status}.", Path.GetFileName(datPath), passed ? "Processed" : "Errored");
@@ -204,15 +222,26 @@ namespace IFIC.Runner
             }
         }
 
-        /// <summary>
-        /// Processes a single .dat file:
-        /// - Parses the flat file into structured data.
-        /// - Normalizes AdminMetadata.
-        /// - If not FIRST ASSESSMENT, attempts to retrieve saved Patient/Encounter IDs from dictionary.
-        /// - If UPDATE/DELETE requested but ID not found → FAIL immediately.
-        /// - Builds FHIR XML bundles for Patient/Encounter/Questionnaire.
-        /// - Submits bundle to CIHI and updates ID cache if new IDs are created.
-        /// </summary>
+        /*  
+        * FUNCTION      : ProcessSingleFileAsync
+        * DESCRIPTION   : Processes one .dat file end-to-end, including:
+        *                 - parsing
+        *                 - building the bundle
+        *                 - submitting to CIHI
+        *                 - evaluating PASS/FAIL
+        *                 - updating Clarity LTCF tables via ClarityLTCFUpdateService
+        * PARAMETERS    : string datPath
+        *                 string outputFolder
+        *                 string timestamp
+        *                 IApiClient apiClient
+        *                 ILogger logger
+        *                 string runLogFile
+        *                 string fallbackFiscal
+        *                 string fallbackQuarterRaw
+        *                 Dictionary<string,string> savedIdsByKey
+        *                 ClarityLTCFUpdateService ltcfUpdateService   // NEW
+        * RETURNS       : (bool Passed, AdminMetadata Admin)
+        */
         private static async Task<(bool Passed, AdminMetadata Admin)> ProcessSingleFileAsync(
             string datPath,
             string outputFolder,
@@ -222,7 +251,8 @@ namespace IFIC.Runner
             string runLogFile,
             string fallbackFiscal,
             string fallbackQuarterRaw,
-            Dictionary<string, string> savedIdsByKey)
+            Dictionary<string, string> savedIdsByKey,
+            ClarityLTCFUpdateService ltcfUpdateService)
         {
             // Parse the flat file into structured data
             var parser = new FlatFileParser();
@@ -382,7 +412,28 @@ namespace IFIC.Runner
 
             // SEANNIE
             // - update the LTCF SubmissionStatus table 
-            //    "update SubmssionStatus set status='{PASS|FAIL}' where status='QUEUED' and rec_id="+adminMeta.RecId
+            //    "update SubmssionStatus set status='{PASS|FAIL}' where status='QUEUED'
+            //    and rec_id="+adminMeta.RecId
+            // ================================
+            // NEW: Persist to Clarity LTCF DB
+            // ================================
+
+            // I write to the database using my business rules:
+            // - On CREATE + PASS → write CIHI IDs for Patient/Encounter/Assessment
+            // - On Assessment (CREATE/CORRECTION/DELETE) with rec_id → set SubmissionStatus = PASS/FAIL
+            try
+            {
+                string finalStatus = passed ? "PASS" : "FAIL";
+                await ltcfUpdateService.ApplyUpdatesAsync(adminMeta, finalStatus, System.Threading.CancellationToken.None);
+                File.AppendAllText(runLogFile, $"Clarity LTCF DB updated with status {finalStatus}.{Environment.NewLine}");
+            }
+            catch (Exception dbEx)
+            {
+                // I log and continue routing; DB write failures should not crash the run
+                logger.LogError(dbEx, "Clarity LTCF update failed for {File}.", datPath);
+                File.AppendAllText(runLogFile, $"ERROR: Clarity LTCF update failed: {dbEx}{Environment.NewLine}");
+            }
+
             return (passed, adminMeta);
         }
 
@@ -795,11 +846,14 @@ namespace IFIC.Runner
             doc.Save(writer);
         }
 
-        /// <summary>
-        /// Configures DI, configuration, and logging.
-        /// </summary>
-        /// <param name="args">Command-line arguments.</param>
-        /// <returns>A configured host builder.</returns>
+        //
+        // FUNCTION      : CreateHostBuilder
+        // DESCRIPTION   : Configures configuration, services, and logging for the IFIC Runner.
+        //                  Adds the Clarity LTCF database client (IClarityClient) and the
+        //                  ClarityLTCFUpdateService so I can persist PASS/FAIL and CIHI IDs.
+        // PARAMETERS    : string[] args : command-line arguments
+        // RETURNS       : IHostBuilder  : configured host builder
+        //
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, config) =>
@@ -809,14 +863,32 @@ namespace IFIC.Runner
                 })
                 .ConfigureServices((context, services) =>
                 {
+                    // Existing services
                     services.AddHttpClient();
                     services.AddSingleton<IAuthManager, AuthManager>();
                     services.AddSingleton<IApiClient, IRRSApiClient>();
+
+                    // ============================
+                    // Clarity LTCF DB wiring (NEW)
+                    // ============================
+                    var clarityClientOptions = new IFIC.ClarityClient.ClarityClientOptions
+                    {
+                        ConnectionString = context.Configuration["ClarityClient:ConnectionString"] ?? "",
+                        FhirIdMaxLength = int.TryParse(context.Configuration["ClarityClient:FhirIdMaxLength"], out var idLen) ? idLen : 60,
+                        StatusMaxLength = int.TryParse(context.Configuration["ClarityClient:StatusMaxLength"], out var stLen) ? stLen : 10,
+                        CommandTimeoutSec = int.TryParse(context.Configuration["ClarityClient:CommandTimeoutSec"], out var to) ? to : 15
+                    };
+
+                    // Register options + client + update service
+                    services.AddSingleton(clarityClientOptions);
+                    services.AddSingleton<IFIC.ClarityClient.IClarityClient, IFIC.ClarityClient.ClarityClient>();
+                    services.AddSingleton<IFIC.FileIngestor.ClarityLTCFUpdateService>();
                 })
                 .ConfigureLogging(logging =>
                 {
                     logging.ClearProviders();
                     logging.AddConsole();
                 });
+
     }
 }

@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ApiClient\ApiClient.csproj" />
     <ProjectReference Include="..\IFIC.Auth\IFIC.Auth.csproj" />
+    <ProjectReference Include="..\IFIC.ClarityClient\IFIC.ClarityClient.csproj" />
   </ItemGroup>
 
 </Project>
