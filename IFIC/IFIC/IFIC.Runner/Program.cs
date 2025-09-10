@@ -398,6 +398,9 @@ namespace IFIC.Runner
                     out string? encId,
                     out string? qId);
 
+                adminMeta.FhirPatID = patId;
+                adminMeta.FhirEncID = encId;
+                adminMeta.FhirAsmID = qId;
                 UpdateSavedIds(savedIdsByKey, adminMeta, patId, encId, qId);
             }
 

@@ -78,7 +78,7 @@ namespace IFIC.FileIngestor.Models
 
                 // Assessment (QuestionnaireResponse)
                 FhirAsmID = Get(admin, "fhirAsmID") ?? Get(admin, "FhirAsmID"),
-                RecId = Get(admin, "recId") ?? Get(admin, "RecId"),
+                RecId = Get(admin, "rec_id") ?? Get(admin, "Rec_Id"),
                 AsmOper = Get(admin, "asmOper") ?? Get(admin, "AsmOper"),
                 AsmType = Get(admin, "asmType") ?? Get(admin, "AsmType"),
 

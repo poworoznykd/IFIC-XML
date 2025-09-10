@@ -79,6 +79,7 @@ namespace IFIC.ClarityClient
             return await command.ExecuteNonQueryAsync(cancellationToken);
         }
 
+
         //
         // FUNCTION      : UpdateAssessmentAsync
         // DESCRIPTION   : Updates dbo.Assessments.fhirAsmID where rec_id matches the supplied string key.
@@ -89,17 +90,39 @@ namespace IFIC.ClarityClient
         {
             if (string.IsNullOrWhiteSpace(recId)) return 0;
 
-            const string sql = @"
+            // Build the SQL inline so I can log/inspect it
+            string sql = $@"
                 UPDATE dbo.Assessments
-                   SET fhirAsmID = @fhirAsmID
-                 WHERE CAST(rec_id AS NVARCHAR(64)) = @rec_id;";
+                   SET fhirAsmID = '{fhirAsmId?.Replace("'", "''") ?? "NULL"}'
+                 WHERE rec_id = {recId.Trim().Replace("'", "''")};";
+
+            Console.WriteLine("Executing SQL:\n" + sql);
 
             using var command = await CreateCommandAsync(sql, cancellationToken);
-            command.Parameters.Add(new SqlParameter("@fhirAsmID", SqlDbType.NVarChar, clarityClientOptions.FhirIdMaxLength) { Value = (object?)fhirAsmId ?? DBNull.Value });
-            command.Parameters.Add(new SqlParameter("@rec_id", SqlDbType.NVarChar, 64) { Value = recId!.Trim() });
-
             return await command.ExecuteNonQueryAsync(cancellationToken);
         }
+
+        ////
+        //// FUNCTION      : UpdateAssessmentAsync
+        //// DESCRIPTION   : Updates dbo.Assessments.fhirAsmID where rec_id matches the supplied string key.
+        //// PARAMETERS    : string? recId, string fhirAsmId, CancellationToken cancellationToken
+        //// RETURNS       : Task<int>
+        ////
+        //public async Task<int> UpdateAssessmentAsync(string? recId, string fhirAsmId, CancellationToken cancellationToken)
+        //{
+        //    if (string.IsNullOrWhiteSpace(recId)) return 0;
+
+        //    const string sql = @"
+        //        UPDATE dbo.Assessments
+        //           SET fhirAsmID = @fhirAsmID
+        //         WHERE CAST(rec_id AS NVARCHAR(64)) = @rec_id;";
+
+        //    using var command = await CreateCommandAsync(sql, cancellationToken);
+        //    command.Parameters.Add(new SqlParameter("@fhirAsmID", SqlDbType.NVarChar, clarityClientOptions.FhirIdMaxLength) { Value = (object?)fhirAsmId ?? DBNull.Value });
+        //    command.Parameters.Add(new SqlParameter("@rec_id", SqlDbType.NVarChar, 64) { Value = recId!.Trim() });
+
+        //    return await command.ExecuteNonQueryAsync(cancellationToken);
+        //}
 
         //
         // FUNCTION      : UpdateSubmissionStatusAsync
@@ -111,17 +134,39 @@ namespace IFIC.ClarityClient
         {
             if (string.IsNullOrWhiteSpace(recId)) return 0;
 
-            const string sql = @"
+            // Build the SQL inline so I can log/inspect it
+            string sql = $@"
                 UPDATE dbo.SubmissionStatus
-                   SET status = @status
-                 WHERE CAST(rec_id AS NVARCHAR(64)) = @rec_id;";
+                   SET status = '{status?.Replace("'", "''") ?? "NULL"}'
+                 WHERE rec_id = {recId.Trim().Replace("'", "''")};";
+
+            Console.WriteLine("Executing SQL:\n" + sql);
 
             using var command = await CreateCommandAsync(sql, cancellationToken);
-            command.Parameters.Add(new SqlParameter("@status", SqlDbType.NVarChar, clarityClientOptions.StatusMaxLength) { Value = (object?)status ?? DBNull.Value });
-            command.Parameters.Add(new SqlParameter("@rec_id", SqlDbType.NVarChar, 64) { Value = recId!.Trim() });
-
             return await command.ExecuteNonQueryAsync(cancellationToken);
         }
+
+        ////
+        //// FUNCTION      : UpdateSubmissionStatusAsync
+        //// DESCRIPTION   : Updates dbo.SubmissionStatus.status where rec_id matches the supplied string key.
+        //// PARAMETERS    : string? recId, string status, CancellationToken cancellationToken
+        //// RETURNS       : Task<int>
+        ////
+        //public async Task<int> UpdateSubmissionStatusAsync(string? recId, string status, CancellationToken cancellationToken)
+        //{
+        //    if (string.IsNullOrWhiteSpace(recId)) return 0;
+
+        //    const string sql = @"
+        //        UPDATE dbo.SubmissionStatus
+        //           SET status = @status
+        //         WHERE CAST(rec_id AS NVARCHAR(64)) = @rec_id;";
+
+        //    using var command = await CreateCommandAsync(sql, cancellationToken);
+        //    command.Parameters.Add(new SqlParameter("@status", SqlDbType.NVarChar, clarityClientOptions.StatusMaxLength) { Value = (object?)status ?? DBNull.Value });
+        //    command.Parameters.Add(new SqlParameter("@rec_id", SqlDbType.NVarChar, 64) { Value = recId!.Trim() });
+
+        //    return await command.ExecuteNonQueryAsync(cancellationToken);
+        //}
 
         //
         // FUNCTION      : PingDatabaseAsync
