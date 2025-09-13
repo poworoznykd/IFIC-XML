@@ -23,6 +23,9 @@
 	  <None Update="appsettings.json">
 		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	  <None Update="certs\ltcf-clrty_cihi_cihitestirrs29.key">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	  <None Update="certs\ltcf-clrty_cihi_cihitestirrs30.key">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
