@@ -29,6 +29,9 @@
 	  <None Update="certs\ltcf-clrty_cihi_cihitestirrs30.key">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	  <None Update="Mappings\Error-Element-Mapping.xlsx">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
   
 	<ItemGroup>

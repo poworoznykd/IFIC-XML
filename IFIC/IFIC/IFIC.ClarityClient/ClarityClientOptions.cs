@@ -29,5 +29,8 @@ namespace IFIC.ClarityClient
         // Short UPDATEs should complete quickly; adjust if test boxes are slow
         [Range(1, 600)]
         public int CommandTimeoutSec { get; set; } = 15;
+
+        [Required, MinLength(1)]
+        public string ElementMappingPath { get; set; } = string.Empty;
     }
 }

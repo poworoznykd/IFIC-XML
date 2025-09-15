@@ -45,6 +45,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using System.Runtime.CompilerServices;
 
 namespace IFIC.Runner
 {
@@ -68,11 +69,11 @@ namespace IFIC.Runner
 
             if (dbOk)
             {
-                Console.WriteLine("✅ Clarity LTCF database connection succeeded.");
+                Console.WriteLine("Clarity LTCF database connection succeeded.");
             }
             else
             {
-                Console.WriteLine("❌ Failed to connect to Clarity LTCF database. Check connection string.");
+                Console.WriteLine("Failed to connect to Clarity LTCF database. Check connection string.");
             }
 
 
@@ -427,7 +428,11 @@ namespace IFIC.Runner
             try
             {
                 string finalStatus = passed ? "PASS" : "FAIL";
-                await ltcfUpdateService.ApplyUpdatesAsync(adminMeta, finalStatus, System.Threading.CancellationToken.None);
+                await ltcfUpdateService.ApplyUpdatesAsync(
+                    adminMeta, 
+                    finalStatus,
+                    IRRSApiClient.responseContent,
+                    System.Threading.CancellationToken.None);
                 File.AppendAllText(runLogFile, $"Clarity LTCF DB updated with status {finalStatus}.{Environment.NewLine}");
             }
             catch (Exception dbEx)
@@ -879,7 +884,8 @@ namespace IFIC.Runner
                         ConnectionString = context.Configuration["ClarityClient:ConnectionString"] ?? "",
                         FhirIdMaxLength = int.TryParse(context.Configuration["ClarityClient:FhirIdMaxLength"], out var idLen) ? idLen : 60,
                         StatusMaxLength = int.TryParse(context.Configuration["ClarityClient:StatusMaxLength"], out var stLen) ? stLen : 10,
-                        CommandTimeoutSec = int.TryParse(context.Configuration["ClarityClient:CommandTimeoutSec"], out var to) ? to : 15
+                        CommandTimeoutSec = int.TryParse(context.Configuration["ClarityClient:CommandTimeoutSec"], out var to) ? to : 15,
+                        ElementMappingPath = context.Configuration["ClarityClient:ElementMappingPath"] ?? ""
                     };
 
                     // Register options + client + update service

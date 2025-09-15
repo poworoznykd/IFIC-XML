@@ -31,6 +31,7 @@ namespace IFIC.ApiClient
         private readonly ILogger<IRRSApiClient> logger;
         private readonly string endpointUrl;
         public static string clientMessage = "";
+        public static string responseContent = "";
         /// <summary>
         /// Initializes a new instance of the IRRSApiClient class.
         /// </summary>
@@ -105,7 +106,7 @@ namespace IFIC.ApiClient
 
             // Send the request
             var response = await httpClient.SendAsync(request);
-            var responseContent = await response.Content.ReadAsStringAsync();
+            responseContent = await response.Content.ReadAsStringAsync();
 
             // Try to get the transaction ID from headers
             string transactionId = null;
