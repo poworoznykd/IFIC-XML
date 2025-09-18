@@ -7,6 +7,9 @@
  *      - For each issue, chooses ONE primary iCode (from interRAI-iCode system),
  *        rewrites the message by replacing any iCode tokens with their mapped
  *        ElementCode (e.g., R7, A9), and writes a single note to the mapped Section.
+ *      - NEW: If no iCode is present but the human-readable message contains a plain
+ *        ElementCode token (e.g., "A8"), route to that Section letter (A) and surface
+ *        the message as-is. This fixes cases like: "No response found for required item A8".
  *      - Sets ccrsSectionState.Section_<X> = '2'.
  *      - For asmOper in {CREATE, CORRECTION, DELETE}, marks Assessments as
  *        Incomplete and transmit=NO.
@@ -32,6 +35,9 @@ namespace IFIC.Outcome
     {
         // Matches iCode tokens in free text: iA9, iU2, iA5a, iB3b, case-insensitive
         private static readonly Regex ICodeToken = new Regex(@"\b[iI][A-Z][0-9]+[a-z]?\b", RegexOptions.Compiled);
+
+        // NEW: Matches plain element codes in free text: A8, A12, B3b, R7 (no leading 'i')
+        private static readonly Regex ElementCodeToken = new Regex(@"\b[A-Z][0-9]{1,3}[a-z]?\b", RegexOptions.Compiled);
 
         private const string FallbackUnknownExceptionNote =
             "Unknown exception occurred when submitting to CIHI. Please contact administrator and see runlog for more details.";
@@ -106,18 +112,17 @@ namespace IFIC.Outcome
                                 if (m.Success) primaryICode = m.Value;
                             }
 
-                            // 3) If we still have no primary iCode, we optionally map a non-iCode code; otherwise skip issue
+                            // 3) If we still have no primary iCode, try to recover from a plain ElementCode in the text
+                            //    Example: "No response found for required item A8" -> section "A"
+                            string? derivedSectionFromPlainElement = null;
                             if (string.IsNullOrWhiteSpace(primaryICode))
                             {
-                                var sysCode = issue.Descendants().Where(e => e.Name.LocalName == "coding")
-                                    .Select(c => c.Elements().FirstOrDefault(n => n.Name.LocalName == "code")?.Attribute("value")?.Value)
-                                    .FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
-                                if (!string.IsNullOrWhiteSpace(sysCode) && map.TryResolveICode(sysCode!, out var sec0, out _, out _))
+                                var mE = ElementCodeToken.Match(baseMessage);
+                                if (mE.Success)
                                 {
-                                    updates.Add((sec0, baseMessage));
-                                    anyIssueProcessed = true;
+                                    var plainElement = mE.Value; // e.g., "A8"
+                                    derivedSectionFromPlainElement = plainElement.Substring(0, 1).ToUpperInvariant();
                                 }
-                                continue;
                             }
 
                             // 4) Build token → ElementCode replacements for readability (iU2 → R7, iA9 → A9)
@@ -133,10 +138,27 @@ namespace IFIC.Outcome
                             }
                             string normalizedMessage = ReplaceTokens(baseMessage, replacements);
 
-                            // 5) Resolve the single target section from the PRIMARY iCode and queue ONE update
-                            if (map.TryResolveICode(primaryICode!, out var section, out _, out _))
+                            // 5) Resolve the single target section
+                            string? section = null;
+                            if (!string.IsNullOrWhiteSpace(primaryICode) && map.TryResolveICode(primaryICode!, out var mappedSection, out _, out _))
                             {
-                                updates.Add((section, normalizedMessage));
+                                section = mappedSection; // mapped from iCode
+                            }
+                            else if (!string.IsNullOrWhiteSpace(derivedSectionFromPlainElement))
+                            {
+                                section = derivedSectionFromPlainElement; // derived from "A8" -> "A"
+                            }
+
+                            // Normalize for DB rules (e.g., S -> R)
+                            var dbSection = NormalizeDbSection(section);
+
+                            // 6) Queue the update if a section was resolved
+                            if (!string.IsNullOrWhiteSpace(dbSection))
+                            {
+                                // If we mapped via iCode, use normalized message (with iX -> ElementCode). If we only had a plain A8,
+                                // keep the base message exactly as CIHI wrote it.
+                                var msgToWrite = !string.IsNullOrWhiteSpace(primaryICode) ? normalizedMessage : baseMessage;
+                                updates.Add((dbSection!, msgToWrite));
                                 anyIssueProcessed = true;
                             }
                         }
@@ -153,42 +175,64 @@ namespace IFIC.Outcome
                 }
             }
 
-            if (fallbackAllSections)
+            // --- Plan B: If parsing captured nothing but XML contains display/diagnostics, salvage a Section note ---
+            if (!fallbackAllSections && updates.Count == 0)
             {
-                // Unknown/exception with no issues → mark incomplete and touch all sections
-                await db.MarkAssessmentIncompleteNotTransmittedAsync(recId, ct);
-                for (char ch = 'A'; ch <= 'Z'; ch++)
+                try
                 {
-                    string section = ch.ToString();
-                    await db.SetSectionStateAsync(section, recId, state: "2", ct);
-                    await db.AppendSectionNoteAsync(section, recId, FallbackUnknownExceptionNote, ct);
+                    var mDisplay = Regex.Match(operationOutcomeXml ?? string.Empty, @"<display\s+value=""([^""]+)""", RegexOptions.IgnoreCase);
+                    var mDiag = Regex.Match(operationOutcomeXml ?? string.Empty, @"<diagnostics\s+value=""([^""]+)""", RegexOptions.IgnoreCase);
+                    var msg = mDisplay.Success ? mDisplay.Groups[1].Value : (mDiag.Success ? mDiag.Groups[1].Value : null);
+
+                    if (!string.IsNullOrWhiteSpace(msg))
+                    {
+                        var mElem = ElementCodeToken.Match(msg);
+                        if (mElem.Success)
+                        {
+                            var sec = NormalizeDbSection(mElem.Value.Substring(0, 1));
+                            updates.Add((sec, msg));
+                        }
+                    }
                 }
-                return;
+                catch
+                {
+                    // ignore and let the fallback below fire
+                }
             }
 
             // Apply per-issue DB updates collected above
-            foreach (var (section, message) in updates)
+            if (!fallbackAllSections && updates.Count > 0)
             {
-                await db.AppendSectionNoteAsync(section, recId, message, ct);
-                await db.SetSectionStateAsync(section, recId, state: "2", ct);
+                foreach (var (section, message) in updates)
+                {
+                    await db.AppendSectionNoteAsync(section, recId, message, ct);
+                    await db.SetSectionStateAsync(section, recId, state: "2", ct);
+                }
+
+                if (asmOper.Equals("CREATE", StringComparison.OrdinalIgnoreCase)
+                    || asmOper.Equals("CORRECTION", StringComparison.OrdinalIgnoreCase)
+                    || asmOper.Equals("DELETE", StringComparison.OrdinalIgnoreCase))
+                {
+                    await db.MarkAssessmentIncompleteNotTransmittedAsync(recId, ct);
+                }
+
+                return;
             }
 
-            // Mark assessment as not transmitted for certain operations
-            if (asmOper.Equals("CREATE", StringComparison.OrdinalIgnoreCase)
-                || asmOper.Equals("CORRECTION", StringComparison.OrdinalIgnoreCase)
-                || asmOper.Equals("DELETE", StringComparison.OrdinalIgnoreCase))
+            // Unknown/exception with no issues → mark incomplete and touch all sections
+            await db.MarkAssessmentIncompleteNotTransmittedAsync(recId, ct);
+            for (char ch = 'A'; ch <= 'Z'; ch++)
             {
-                await db.MarkAssessmentIncompleteNotTransmittedAsync(recId, ct);
+                string section = NormalizeDbSection(ch.ToString());
+                await db.SetSectionStateAsync(section, recId, state: "2", ct);
+                await db.AppendSectionNoteAsync(section, recId, FallbackUnknownExceptionNote, ct);
             }
         }
 
         /// <summary>
-        /// Replaces tokens found in <paramref name="text"/> using <paramref name="replacements"/>,
+        /// Replaces tokens found in <paramref name=\"text\"/> using <paramref name=\"replacements\"/>,
         /// applying longest-match-first to avoid partial overlaps (e.g., iA9 before iA9a).
         /// </summary>
-        /// <param name="text">Original message text (display/diagnostics).</param>
-        /// <param name="replacements">Map of token → replacement (e.g., iU2 → R7).</param>
-        /// <returns>The message with all replacements applied.</returns>
         private static string ReplaceTokens(string text, IDictionary<string, string> replacements)
         {
             if (replacements.Count == 0 || string.IsNullOrEmpty(text)) return text;
@@ -197,15 +241,20 @@ namespace IFIC.Outcome
             foreach (var token in ordered)
             {
                 var repl = replacements[token];
-                result = Regex.Replace(result, $@"\(\s*{Regex.Escape(token)}\s*\)", $"({repl})", RegexOptions.IgnoreCase);
-                result = Regex.Replace(result, $@"\b{Regex.Escape(token)}\b", repl, RegexOptions.IgnoreCase);
+                result = Regex.Replace(result, @"\(\s*" + Regex.Escape(token) + @"\s*\)", "(" + repl + ")", RegexOptions.IgnoreCase);
+                result = Regex.Replace(result, @"\b" + Regex.Escape(token) + @"\b", repl, RegexOptions.IgnoreCase);
             }
             return result;
         }
 
-        /// <summary>
-        /// Case-insensitive tuple comparer used by the HashSet of (Section, Message).
-        /// </summary>
+        private static string NormalizeDbSection(string? section)
+        {
+            if (string.IsNullOrWhiteSpace(section)) return section ?? string.Empty;
+            char ch = char.ToUpperInvariant(section[0]);
+            // Business rule: S* (e.g., S1, S2) write to the R section in the database (Section_R exists; Section_S does not).\n            if (ch == 'S') ch = 'R';
+            return ch.ToString();
+        }
+
         private sealed class StringTupleComparer : IEqualityComparer<(string A, string B)>
         {
             public static readonly StringTupleComparer OrdinalIgnoreCase = new();

@@ -109,8 +109,8 @@ namespace IFIC.ClarityClient
                 current = result == DBNull.Value ? null : result as string;
             }
 
-            // 2) Append per spec: existing + "<br>+" + new
-            string updated = string.IsNullOrWhiteSpace(current) ? noteHtml : (current + "<br>+" + noteHtml);
+            // 2) Append per spec: existing + "<br>" + new
+            string updated = string.IsNullOrWhiteSpace(current) ? noteHtml : ("<br>" + current + "<br>" + noteHtml);
 
             // 3) Write back
             string updateSql = $"UPDATE dbo.Section_{section} SET notes=@notes WHERE rec_id=@rec_id";
