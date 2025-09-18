@@ -41,7 +41,7 @@ namespace IFIC.ClarityClient
         }
 
         // -------------------------------------------------------------
-        // PASS-path updaters (kept)
+        // PASS-path updaters
         // -------------------------------------------------------------
 
         /// <summary>

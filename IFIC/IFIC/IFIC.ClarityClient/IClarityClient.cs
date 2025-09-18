@@ -19,10 +19,6 @@ namespace IFIC.ClarityClient
     /// </summary>
     public interface IClarityClient
     {
-        // -------------------------------------------------------------
-        // PASS-path updaters (kept for completeness)
-        // -------------------------------------------------------------
-
         /// <summary>
         /// Writes the FHIR Patient ID back to dbo.fhirPatient for the record identified by <paramref name="fhirPatKey"/>.
         /// </summary>
@@ -65,10 +61,6 @@ namespace IFIC.ClarityClient
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>True when the database can be reached and responds correctly.</returns>
         Task<bool> PingDatabaseAsync(CancellationToken cancellationToken);
-
-        // -------------------------------------------------------------
-        // Error-path helpers used by OperationOutcome processing
-        // -------------------------------------------------------------
 
         /// <summary>
         /// Appends an HTML line to dbo.Section_&lt;X&gt;.notes for <paramref name="recId"/>.

@@ -46,7 +46,6 @@ namespace IFIC.FileIngestor
         }
 
         /// <summary>
-        /// Original signature kept for compatibility (no OperationOutcome XML).
         /// Routes to the 4‑parameter overload with a null XML.
         /// </summary>
         public Task ApplyUpdatesAsync(AdminMetadata admin, string resultStatus, CancellationToken cancellationToken)
