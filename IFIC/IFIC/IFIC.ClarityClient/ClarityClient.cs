@@ -44,7 +44,13 @@ namespace IFIC.ClarityClient
         // PASS-path updaters (kept)
         // -------------------------------------------------------------
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Writes the FHIR Patient ID to <c>dbo.fhirPatient</c> for the specified key.
+        /// </summary>
+        /// <param name="fhirPatKey">FHIR patient row key (string form). Ignored if null/empty.</param>
+        /// <param name="fhirPatId">FHIR Patient resource ID to store (null becomes DB NULL).</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Rows affected (0 or 1 expected).</returns>
         public async Task<int> UpdatePatientAsync(string? fhirPatKey, string fhirPatId, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(fhirPatKey)) return 0;
@@ -55,7 +61,13 @@ namespace IFIC.ClarityClient
             return await command.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Writes the FHIR Encounter ID to <c>dbo.fhirEncounter</c> for the specified key.
+        /// </summary>
+        /// <param name="fhirEncKey">FHIR encounter row key (string form). Ignored if null/empty.</param>
+        /// <param name="fhirEncId">FHIR Encounter resource ID to store (null becomes DB NULL).</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Rows affected (0 or 1 expected).</returns>
         public async Task<int> UpdateEncounterAsync(string? fhirEncKey, string fhirEncId, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(fhirEncKey)) return 0;
@@ -66,7 +78,13 @@ namespace IFIC.ClarityClient
             return await command.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Writes the FHIR Assessment ID to <c>dbo.Assessments</c> for the provided <paramref name="recId"/>.
+        /// </summary>
+        /// <param name="recId">Assessment record id (string form; parsed to INT).</param>
+        /// <param name="fhirAsmId">FHIR Assessment resource ID to store (null becomes DB NULL).</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Rows affected (0 or 1 expected).</returns>
         public async Task<int> UpdateAssessmentAsync(string? recId, string fhirAsmId, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(recId)) return 0;
@@ -78,7 +96,13 @@ namespace IFIC.ClarityClient
             return await command.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Updates <c>dbo.SubmissionStatus.status</c> for the supplied assessment id.
+        /// </summary>
+        /// <param name="recId">Assessment record id (string form; parsed to INT).</param>
+        /// <param name="status">New submission status value (e.g., "PASS", "FAIL").</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Rows affected (0 or 1 expected).</returns>
         public async Task<int> UpdateSubmissionStatusAsync(string? recId, string status, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(recId)) return 0;
@@ -94,6 +118,40 @@ namespace IFIC.ClarityClient
         // Error-path helpers
         // -------------------------------------------------------------
 
+        /// <summary>
+        /// If the assessment's patient currently has <c>Status='discharged'</c>, set it to <c>'Active'</c>.
+        /// </summary>
+        /// <param name="recId">Assessment record id (INT).</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Rows affected (0 or 1 expected).</returns>
+        /// <exception cref="InvalidOperationException">Thrown if more than one row is updated.</exception>
+        public async Task<int> MarkPatientActiveByRecIdAsync(int recId, CancellationToken cancellationToken)
+        {
+            const string sql = @"
+                UPDATE dbo.patients
+                SET    Status = 'Active'
+                WHERE  Status = 'discharged'
+                AND  uid = (SELECT uid FROM dbo.Assessments WHERE rec_id = @rec_id);";
+
+            using var cmd = await CreateCommandAsync(sql, cancellationToken);
+            cmd.Parameters.Add(new SqlParameter("@rec_id", SqlDbType.Int) { Value = recId });
+
+            var affected = await cmd.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+
+            if (affected > 1)
+                throw new InvalidOperationException($"Expected to update at most 1 row, but updated {affected} for rec_id {recId}.");
+
+            return affected; // 0 (no change) or 1 (reactivated)
+        }
+
+        /// <summary>
+        /// Appends (or creates) an HTML note to <c>dbo.Section_&lt;X&gt;.notes</c> for the given <paramref name="recId"/>.
+        /// </summary>
+        /// <param name="sectionLetter">Target section letter (A..Z).</param>
+        /// <param name="recId">Assessment record id (INT).</param>
+        /// <param name="noteHtml">HTML snippet to append.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Rows affected by the update.</returns>
         public async Task<int> AppendSectionNoteAsync(string sectionLetter, int recId, string noteHtml, CancellationToken cancellationToken)
         {
             string section = NormalizeSection(sectionLetter);
@@ -120,7 +178,14 @@ namespace IFIC.ClarityClient
             return await updateCmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Sets <c>dbo.ccrsSectionState.Section_&lt;X&gt;</c> to the supplied state for the given <paramref name="recId"/>.
+        /// </summary>
+        /// <param name="sectionLetter">Target section letter (A..Z).</param>
+        /// <param name="recId">Assessment record id (INT).</param>
+        /// <param name="state">State value to store (e.g., "2").</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Rows affected by the update.</returns>
         public async Task<int> SetSectionStateAsync(string sectionLetter, int recId, string state, CancellationToken cancellationToken)
         {
             string section = NormalizeSection(sectionLetter);
@@ -133,7 +198,12 @@ namespace IFIC.ClarityClient
             return await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Marks the assessment as <c>Status='Incomplete'</c> and <c>transmit='NO'</c> for the given <paramref name="recId"/>.
+        /// </summary>
+        /// <param name="recId">Assessment record id (INT).</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>Rows affected by the update.</returns>
         public async Task<int> MarkAssessmentIncompleteNotTransmittedAsync(int recId, CancellationToken cancellationToken)
         {
             const string sql = @"UPDATE dbo.Assessments SET Status='Incomplete', transmit='NO' WHERE rec_id=@rec_id";
@@ -142,21 +212,11 @@ namespace IFIC.ClarityClient
             return await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        /// <inheritdoc />
-        public async Task<int> MarkPatientActiveByRecIdAsync(int recId, CancellationToken cancellationToken)
-        {
-            const string sql = @"UPDATE p SET p.Status='Active'
-                                 FROM dbo.patients p
-                                 INNER JOIN dbo.Assessments a ON a.uid = p.uid
-                                 WHERE a.rec_id=@rec_id AND p.Status='discharged'";
-            using var cmd = await CreateCommandAsync(sql, cancellationToken);
-            cmd.Parameters.Add(new SqlParameter("@rec_id", SqlDbType.Int) { Value = recId });
-            return await cmd.ExecuteNonQueryAsync(cancellationToken);
-        }
-
         /// <summary>
         /// Executes SELECT 1 to verify connectivity.
         /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns><c>true</c> if the database responds correctly; otherwise <c>false</c>.</returns>
         public async Task<bool> PingDatabaseAsync(CancellationToken cancellationToken)
         {
             try
@@ -178,6 +238,9 @@ namespace IFIC.ClarityClient
         /// <summary>
         /// Creates a <see cref="SqlCommand"/> with configured timeout, opening the connection on first use.
         /// </summary>
+        /// <param name="sql">SQL text to execute.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>An initialized <see cref="SqlCommand"/> bound to the shared connection.</returns>
         private async Task<SqlCommand> CreateCommandAsync(string sql, CancellationToken cancellationToken)
         {
             if (clarityConnection is null)
@@ -204,12 +267,15 @@ namespace IFIC.ClarityClient
         /// <summary>
         /// Normalizes a section designator to a single uppercase letter.
         /// </summary>
+        /// <param name="s">Input section string.</param>
+        /// <returns>Uppercase single-letter representation, or empty string if input is null/whitespace.</returns>
         private static string NormalizeSection(string s)
             => string.IsNullOrWhiteSpace(s) ? string.Empty : s.Trim().ToUpperInvariant();
 
         /// <summary>
         /// Returns the configured FHIR ID length or a safe default of 60.
         /// </summary>
+        /// <returns>Max NVARCHAR length for FHIR IDs.</returns>
         private int SafeFhirIdLen() => clarityClientOptions.FhirIdMaxLength > 0 ? clarityClientOptions.FhirIdMaxLength : 60;
     }
 }

@@ -247,6 +247,11 @@ namespace IFIC.Outcome
             return result;
         }
 
+        /// <summary>
+        /// Normalizes the db section - uses toupper
+        /// </summary>
+        /// <param name="section">The section to normalize</param>
+        /// <returns>An uppercase section</returns>
         private static string NormalizeDbSection(string? section)
         {
             if (string.IsNullOrWhiteSpace(section)) return section ?? string.Empty;
@@ -255,6 +260,10 @@ namespace IFIC.Outcome
             return ch.ToString();
         }
 
+        /// <summary>
+        /// Case-insensitive comparer for (string A, string B) tuples,
+        /// used to deduplicate or key lookups by treating both items with OrdinalIgnoreCase.
+        /// </summary>
         private sealed class StringTupleComparer : IEqualityComparer<(string A, string B)>
         {
             public static readonly StringTupleComparer OrdinalIgnoreCase = new();

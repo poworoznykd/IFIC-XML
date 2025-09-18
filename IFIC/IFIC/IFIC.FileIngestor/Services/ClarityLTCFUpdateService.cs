@@ -8,12 +8,13 @@
  *    (services.AddSingleton(new ClarityClientOptions { ... })).
  */
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+using DocumentFormat.OpenXml.Spreadsheet;
 using IFIC.ClarityClient;
 using IFIC.FileIngestor.Models;
 using IFIC.Outcome; // OperationOutcomeProcessor_v2
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace IFIC.FileIngestor
 {
@@ -69,8 +70,11 @@ namespace IFIC.FileIngestor
             if (string.IsNullOrWhiteSpace(resultStatus)) throw new ArgumentException("Result status is required.", nameof(resultStatus));
 
             bool isPass = string.Equals(resultStatus, "PASS", StringComparison.OrdinalIgnoreCase);
+            if (!isPass)
+            {
 
-            // ------------------------------ PASS PATH ------------------------------
+            }
+            //HAPPY PASS PATH
             if (isPass)
             {
                 // Patient → CREATE + PASS
@@ -103,12 +107,30 @@ namespace IFIC.FileIngestor
                     _ = await clarityClient.UpdateSubmissionStatusAsync(passRecId, "PASS", cancellationToken);
                 }
 
-                return; // nothing else to do on PASS
+                return; 
             }
-
-            // ------------------------------ FAIL PATH ------------------------------
+            //FAIL PATH
             if (!AdminMetadataKeys.TryGetRecId(admin, out var failRecId))
                 throw new InvalidOperationException("rec_id is required to persist FAIL details.");
+
+            // If this is a discharge-type submission and it FAILED, ensure patient is reactivated.
+            // We only touch patients currently marked as 'discharged' and only ever update 0 or 1 row.
+            if (!string.IsNullOrWhiteSpace(failRecId)
+                && !string.IsNullOrWhiteSpace(admin.AsmType)
+                && admin.AsmType.IndexOf("discharg", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                if (int.TryParse(failRecId, out var failRecIdInt) && failRecIdInt > 0)
+                {
+                    try
+                    {
+                        _ = await clarityClient.MarkPatientActiveByRecIdAsync(failRecIdInt, cancellationToken);
+                    }
+                    catch
+                    {
+                        // Non-fatal safeguard: do not block the rest of the FAIL write-backs
+                    }
+                }
+            }
 
             _ = await clarityClient.UpdateSubmissionStatusAsync(failRecId, "FAIL", cancellationToken);
 
