@@ -92,6 +92,13 @@ namespace IFIC.FileIngestor
                     _ = await clarityClient.UpdateEncounterAsync(encounterKey, admin.FhirEncID!, cancellationToken);
                 }
 
+                //SEANNIE - backup for deleteing
+                //// Encounter → DELETE + PASS
+                //if (string.Equals(admin.EncOper, "DELETE", StringComparison.OrdinalIgnoreCase))
+                //{
+                //    _ = await clarityClient.DeleteFhirEncounterIDAsync(admin.FhirEncID!, cancellationToken);
+                //}
+
                 // Assessment → CREATE + PASS
                 if (string.Equals(admin.AsmOper, "CREATE", StringComparison.OrdinalIgnoreCase)
                     && AdminMetadataKeys.TryGetRecId(admin, out var assessmentRecId)

@@ -19,6 +19,7 @@ namespace IFIC.ClarityClient
     /// </summary>
     public interface IClarityClient
     {
+        Task<int> DeleteFhirEncounterIDAsync(string fhirEncId, CancellationToken cancellationToken);
         /// <summary>
         /// Writes the FHIR Patient ID back to dbo.fhirPatient for the record identified by <paramref name="fhirPatKey"/>.
         /// </summary>

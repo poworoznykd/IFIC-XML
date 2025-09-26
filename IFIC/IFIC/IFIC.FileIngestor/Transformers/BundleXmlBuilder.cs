@@ -52,18 +52,32 @@ namespace IFIC.FileIngestor.Transformers
                     patientId,
                     encounterId,
                     adminMeta.EncOper,
-                    isReturnAssessment
+                    isReturnAssessment,
+                    questionnaireResponseId     // need to add this parameter for Test Case 5
                 );
                 bundleElements.Add(encounterEntry);
             }
             if (questionnaireResponseBuilder != null)
             {
+                // SEANNIE - TRANSFER - TEST CASE 5  (SEARCH for "SEANNIE - TRANSFER")
+                //  -- this is Darryl's code to construct/build the proper Assessment entry
+                //     I have added another "shenanigan" method for the purposes of Vendor Testing
+                //     only "BuildReferralRequest()" - to be uncommented and used in 
+                //     TestCase #5
                 var questionnaireEntry = questionnaireResponseBuilder.BuildQuestionnaireResponseEntry(
                     parsedFile,
                     patientId,
                     encounterId,
                     questionnaireResponseId, adminMeta.AsmOper
                 );
+
+//                var questionnaireEntry = questionnaireResponseBuilder.BuildReferralRequestEntry(
+//                    parsedFile,
+//                    patientId,
+//                    encounterId,
+//                    questionnaireResponseId, "CREATE"
+//                );
+
                 bundleElements.Add(questionnaireEntry);
             }
             if (patientBuilder != null && adminMeta.PatOper != "USE")

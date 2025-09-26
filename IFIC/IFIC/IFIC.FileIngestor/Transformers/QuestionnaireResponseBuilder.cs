@@ -2982,7 +2982,7 @@ namespace IFIC.FileIngestor.Transformers
                         new XElement(ns + "item",
                             new XElement(ns + "linkId", SafeAttr("value", "N")),
 
-                            // SEANNIE
+                            // SEANNIE - Test Case 2
                             // N1 - the drug question - for vendor testing
                             // just uncomment for test 2-1.2
 //                            new XElement(ns + "item",
@@ -3646,6 +3646,130 @@ namespace IFIC.FileIngestor.Transformers
             return entry;
         }
 
+        public XElement BuildReferralRequestEntry(
+            ParsedFlatFile parsedFile,
+            string patientId,
+            string encounterId,
+            string questionnaireResponseId,
+            string refOper)
+        {
+
+            // SEANNIE - TRANSFER
+            // -- this is the code that "builds" the ReferralRequest
+            // -- this is **PART #1** of the the test case - where Facility "B" (the requester) asks
+            //    for the patient to be transferred to their facility (in our case IRRS29) asking
+            //    for the patient from facility IRRS30
+
+            XAttribute SafeAttr(XName name, string value) => string.IsNullOrWhiteSpace(value) ? null : new XAttribute(name, value);
+
+            string fullUrlEntry = "ReferralRequest/";   //SEANNIE
+            if (refOper.CompareTo("CREATE") == 0) fullUrlEntry = "urn:uuid:";
+
+            parsedFile.Patient.TryGetValue("A5C", out var CRNValue);
+            var requestDate = "2025-09-19";
+
+
+            parsedFile.Patient.TryGetValue("OrgID", out var orgId);
+            var entry = new XElement(ns + "entry",
+                new XElement(ns + "fullUrl", SafeAttr("value", $"{fullUrlEntry}{questionnaireResponseId}")),
+                new XElement(ns + "resource",
+                    new XElement(ns + "ReferralRequest",
+                        new XAttribute("xmlns", ns),
+                            new XElement(ns + "meta",
+                                new XElement(ns + "profile",
+                                    new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-referral-request")
+                                )
+                            ),
+
+                            new XElement(ns + "text",
+                                new XElement(ns + "status",
+                                    new XAttribute("value", "additional")
+                                ),
+                                new XElement(ns + "div",
+//                                    new String("xmlns=\"http://www.w3.org/1999/xhtml\""),
+//                                    new XAttribute("yyyns", "http://www.w3.org/1999/xhtml") 
+                                    new String("This is an example of a transfer that uses patient CRN and instrument type in order to refer to an existing patient and encounter")
+                                )
+//                                new String("<div xmlns=\"http://www.w3.org/1999/xhtml\">"),
+//                                new String("This is an example of a transfer that uses patient CRN and instrument type in order to refer to an existing patient and encounter")
+//                                new String("</div>")
+                            ),
+
+                            new XElement(ns + "status",
+                                SafeAttr("value", "active")
+                            ),
+                            new XElement(ns + "intent",
+                                SafeAttr("value", "order")
+                            ),
+
+                            new XElement(ns + "type",
+                                new XElement(ns + "coding",
+                                    new XElement(ns + "code",
+                                        new XAttribute("value", "2")
+                                    )
+                                )
+                            ),
+
+                            new XElement(ns + "subject",
+                                new XElement(ns + "identifier",
+                                    new XElement(ns + "type",
+                                        new XElement(ns + "coding",
+                                            new XElement(ns + "system", new XAttribute("value", "http://hl7.org/fhir/v2/0203")),
+                                            new XElement(ns + "code", new XAttribute("value", "MR"))
+                                        )
+                                    ),
+                                    new XElement(ns + "system", new XAttribute("value", "http://acme.vendor.com/facility-cm")),
+                                    new XElement(ns + "value", new XAttribute("value", CRNValue))
+                                )
+                            ),
+
+                            new XElement(ns + "authoredOn",
+                                SafeAttr("value", requestDate)
+                            ),
+
+                            // facility we are requesting FROM
+                            new XElement(ns + "requester",
+                                new XElement(ns + "agent",
+                                    new XElement(ns + "identifier",
+                                        new XElement(ns + "system",
+                                            new XAttribute("value", "http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier")
+                                        ),
+                                        new XElement(ns + "value",
+                                            new XAttribute("value", "CIHITESTIRRS30")
+                                        )
+                                    )
+                                )
+                            ),
+
+                            // facility we are requesting to send the patient TO
+                            new XElement(ns + "recipient",
+                                    new XElement(ns + "identifier",
+                                        new XElement(ns + "system",
+                                            new XAttribute("value", "http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier")
+                                        ),
+                                        new XElement(ns + "value",
+                                            new XAttribute("value", "CIHITESTIRRS29")
+                                        )
+                                    )
+                            )
+
+                    //                        new XElement(ns + "questionnaire",
+                    //                            new XElement(ns + "reference",
+                    //                                SafeAttr("value", "Questionnaire/irrs-ltcf")
+                    //                            )
+                    //                        ),
+                    )
+                ),
+                    BuildEntryPoint(questionnaireResponseId)
+            );
+
+            // Prune empty sections/items/answers with missing values
+            PruneQuestionnaireResponseEntry(entry);
+
+            return entry;
+        }
+
+
         /// <summary>
         /// Builds the QuestionnaireResponse request entry point for the FHIR bundle.
         /// Uses AdminData.AsmOper (assessment operation) to decide which API action to generate.
@@ -3664,7 +3788,12 @@ namespace IFIC.FileIngestor.Transformers
                 case "CREATE":
                     return new XElement(ns + "request",
                         new XElement(ns + "method", new XAttribute("value", "POST")),
+
+                        // SEANNIE - TRANSFER
+                        // -- when we're running TestCase 5 switch these lines -- super kludgee
+                        //    LMFAO
                         new XElement(ns + "url", new XAttribute("value", "/QuestionnaireResponse"))
+//                        new XElement(ns + "url", new XAttribute("value", "/ReferralRequest"))
                     );
 
                 case "CORRECTION":
@@ -3752,20 +3881,20 @@ namespace IFIC.FileIngestor.Transformers
             ParsedFlatFile parsedFile,
             string patientId)
         {
-            if (AdminData.PatOper == "USE")
-            {
-                return new XElement(ns + "subject",
-                   new XElement(ns + "reference",
-                       new XAttribute("value", $"Patient/{patientId}")
-                   )
-                );
-            }
-            else
+            if (AdminData.PatOper == "CREATE")
             {
                 return new XElement(ns + "subject",
                     new XElement(ns + "reference",
                         new XAttribute("value", $"urn:uuid:{patientId}")
                     )
+                );
+            }
+            else
+            {
+                return new XElement(ns + "subject",
+                   new XElement(ns + "reference",
+                       new XAttribute("value", $"Patient/{patientId}")
+                   )
                 );
             }
 

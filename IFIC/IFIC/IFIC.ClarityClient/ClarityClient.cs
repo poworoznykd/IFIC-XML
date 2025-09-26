@@ -44,6 +44,15 @@ namespace IFIC.ClarityClient
         // PASS-path updaters
         // -------------------------------------------------------------
 
+        public async Task<int> DeleteFhirEncounterIDAsync(string fhirEncId, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(fhirEncId)) return 0;
+            const string sql = @"UPDATE dbo.fhirEncounter SET fhirEncID='' WHERE fhirEncId = @fhirEncId;";
+            using var command = await CreateCommandAsync(sql, cancellationToken);
+            command.Parameters.Add(new SqlParameter("@fhirEncID", SqlDbType.NVarChar, SafeFhirIdLen()) { Value = (object?)fhirEncId ?? DBNull.Value });
+            return await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
         /// <summary>
         /// Writes the FHIR Patient ID to <c>dbo.fhirPatient</c> for the specified key.
         /// </summary>
@@ -168,7 +177,23 @@ namespace IFIC.ClarityClient
             }
 
             // 2) Append per spec: existing + "<br>" + new
-            string updated = string.IsNullOrWhiteSpace(current) ? noteHtml : ("<br>" + current + "<br>" + noteHtml);
+            // NOTE:  Do not need to append a <br> before the existing "current" as that string will already have the 
+            //        required <br>, etc that it needs
+            // ** I believe that not only do you need a <br> to start the note from CIHI, but the note must
+            //    also begin with the phrase "Item: {section}" 
+            //    for example   "<br>Item: G2b - blah blah blah  <--- where blah blah is the text from CIHI
+            //
+            // ** if you don't know or have the actual item (element) name - then use the "preamble" string
+            //
+            // Sorry Darryl - Clarity is a piece of shit and the errors originally were all coded by me, by hand
+            //                and I didn't realize until now that I formatted them in the :
+            //        "<br>Item: {section}" format  -- YIKES!!!
+            // I built my "generic" error display around the fact that all errors must begin with this format!!
+            // This is the way they are parsed out !! <<GULP>>  (Not too generic, eh?)
+            //    I'm so sorry!! 
+            //
+            string preamble = "<br>Item: " + section + " - ";
+            string updated = string.IsNullOrWhiteSpace(current) ? preamble + noteHtml : (current + preamble + noteHtml);
 
             // 3) Write back
             string updateSql = $"UPDATE dbo.Section_{section} SET notes=@notes WHERE rec_id=@rec_id";

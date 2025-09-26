@@ -90,7 +90,8 @@ namespace IFIC.FileIngestor.Transformers
             string patientId,
             string encounterId, 
             string encOper, 
-            bool isReturnAssess)
+            bool isReturnAssess,
+            string questionnaireId) 
         {
             var coverageCodes = new[] { "iA7a", "iA7b", "iA7j", "iA7d", "iA7i", "iA7k", "iA7e", "iA7l", "iA7f", "iA7n", "iA7m" };
 
@@ -201,7 +202,7 @@ namespace IFIC.FileIngestor.Transformers
                             )
                             : null,
             #region Commented Code
-// SEANNIE
+// SEANNIE - Test Case 1 - uncomment only 2 "//" for program type
 //// contained - program type 1
 //!string.IsNullOrWhiteSpace(patientId) &&
 //!string.IsNullOrWhiteSpace(stayStartDate) 
@@ -255,7 +256,7 @@ namespace IFIC.FileIngestor.Transformers
 //    ) )  // SEANNIE - had to add another ")"
 //    : null,
 
-// contained - ?
+// Leave this MIS Functional Center stuff commented out for now 
 //!string.IsNullOrWhiteSpace(admittedFrom)
 //    ? new XElement(ns + "contained",
 //        new XElement(ns + "Location",
@@ -285,7 +286,7 @@ namespace IFIC.FileIngestor.Transformers
 //    )
 //    : null,
 
-//// contained - Bed Type
+//// leave this Bed Type stuff commented out for now
 //!string.IsNullOrWhiteSpace(admittedFrom)//TODO - hardcoded? (admittedFrom = Program Type 1?)
 //    ? new XElement(ns + "contained",
 //        new XElement(ns + "Location",
@@ -380,6 +381,15 @@ namespace IFIC.FileIngestor.Transformers
                                 ) : null
                             )
                             : null,
+
+                        // SEANNIE - TRANSFER
+                        // -- this is the code that "links" the encounter created at Facility A (IRRS30)
+                        //    to the encounter just created at Facility B (IRRS29)
+                        // 
+//                        new XElement(ns + "incomingReferral",
+//                            new XElement(ns + "reference",
+//                                new XAttribute("value", $"{fullUrlEntry}{questionnaireId}"))
+//                            ),
             #region Commented Code 3
                         ////MIS Function Centre
                         //!string.IsNullOrWhiteSpace(stayStartDate) && !string.IsNullOrWhiteSpace(stayEndDate)
@@ -544,7 +554,7 @@ namespace IFIC.FileIngestor.Transformers
             var bundle = new XElement(ns + "Bundle", new XAttribute("xmlns", ns),
                 new XElement(ns + "id", new XAttribute("value", bundleId)),
                 new XElement(ns + "type", new XAttribute("value", "transaction")),
-                BuildEncounterEntry(parsedFile, patientId, encounterId, encOper, isReturnAssessment)
+                BuildEncounterEntry(parsedFile, patientId, encounterId, encOper, isReturnAssessment, "")
             );
 
             return bundle;
