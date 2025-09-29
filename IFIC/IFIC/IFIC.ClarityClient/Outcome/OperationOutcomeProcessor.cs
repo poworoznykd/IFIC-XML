@@ -206,7 +206,8 @@ namespace IFIC.Outcome
 
             // Unknown/exception with no issues → mark incomplete and touch all sections
             await db.MarkAssessmentIncompleteNotTransmittedAsync(recId, ct);
-            for (char ch = 'A'; ch <= 'Z'; ch++)
+            //I left this in case we wanted to go back to A to Z and just changed the max to be A
+            for (char ch = 'A'; ch <= 'A'; ch++)
             {
                 string section = NormalizeDbSection(ch.ToString());
                 await db.SetSectionStateAsync(section, recId, state: "2", ct);
