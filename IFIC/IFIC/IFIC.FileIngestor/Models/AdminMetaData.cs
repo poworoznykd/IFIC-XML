@@ -37,7 +37,7 @@ namespace IFIC.FileIngestor.Models
 
         // Assessment type and routing
         public string? AsmType { get; set; }
-
+        public string? IsReturn { get; set; }
         /// <summary>Required for routing. Example: "2025".</summary>
         public string? Fiscal { get; set; }
 
@@ -81,7 +81,7 @@ namespace IFIC.FileIngestor.Models
                 RecId = Get(admin, "rec_id") ?? Get(admin, "Rec_Id"),
                 AsmOper = Get(admin, "asmOper") ?? Get(admin, "AsmOper"),
                 AsmType = Get(admin, "asmType") ?? Get(admin, "AsmType"),
-
+                IsReturn = Get(admin, "isReturn") ?? Get(admin, "IsReturn"),
                 // Routing
                 Fiscal = Get(admin, "fiscal") ?? Get(admin, "Fiscal"),
                 Quarter = Get(admin, "quarter") ?? Get(admin, "Quarter"),

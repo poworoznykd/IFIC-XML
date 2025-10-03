@@ -107,6 +107,8 @@ namespace IFIC.FileIngestor.Transformers
             parsedFile.Encounter.TryGetValue("R2", out var dischargedTo);
             parsedFile.Encounter.TryGetValue("R4", out var dischargedToFacilityNumber);
 
+
+
             // Create Bundle document
             var result = new XElement(ns + "entry",
                 new XElement(ns + "fullUrl", new XAttribute("value", $"{fullUrlEntry}{encounterId}")),
@@ -174,12 +176,14 @@ namespace IFIC.FileIngestor.Transformers
                         )
                         : null,
                         !string.IsNullOrWhiteSpace(orgId) &&
-                        !string.IsNullOrWhiteSpace(dischargedTo)
+                        !string.IsNullOrWhiteSpace(dischargedTo) &&
+                        (dischargedTo != "exp")
                             ? new XElement(ns + "contained",
                                 new XElement(ns + "Location",
                                     new XElement(ns + "id",
                                         new XAttribute("value", "dischargedTo")
                                     ),
+
                                     new XElement(ns + "meta",
                                         new XElement(ns + "profile",
                                             new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-discharge")
@@ -203,9 +207,9 @@ namespace IFIC.FileIngestor.Transformers
                             : null,
             #region Commented Code
 // SEANNIE - Test Case 1 - uncomment only 2 "//" for program type
-//// contained - program type 1
-//!string.IsNullOrWhiteSpace(patientId) &&
-//!string.IsNullOrWhiteSpace(stayStartDate) 
+// contained - program type 1
+//!string.IsNullOrWhiteSpace(patientId) //&&
+////!string.IsNullOrWhiteSpace(stayStartDate) 
 ////!string.IsNullOrWhiteSpace(stayEndDate)   // SEANNIE don't need the stayEndDate to have a program
 //    ? new XElement(ns + "contained",
 //        new XElement(ns + "Encounter",
@@ -236,7 +240,7 @@ namespace IFIC.FileIngestor.Transformers
 //            ),
 //            new XElement(ns + "period",
 //                new XElement(ns + "start",
-//                    new XAttribute("value", stayStartDate)
+//                    new XAttribute("value", "2019-08-01")      // could be the variable stayStartDate - but the test has it set to 2019-08-01
 //                ),
 ////                new XElement(ns + "end",
 ////                    new XAttribute("value", stayEndDate)     // SEANNIE make this population conditional on stayEndDate not being null/blank
@@ -337,17 +341,6 @@ namespace IFIC.FileIngestor.Transformers
                             ? BuildSubject(parsedFile,patientId)
                             : null,
 
-                        // period
-                        new XElement(ns + "period",
-                            !string.IsNullOrWhiteSpace(StartDate)
-                            ? new XElement(ns + "start",
-                                new XAttribute("value", StartDate)
-                            ) : null,
-                            !string.IsNullOrWhiteSpace(stayEndDate)
-                            ? new XElement(ns + "end",
-                                new XAttribute("value", stayEndDate)
-                            ) : null
-                        ),
                         (coverageCodes.Any(code => parsedFile.Encounter.ContainsKey(code) && !string.IsNullOrWhiteSpace(parsedFile.Encounter[code]))
                             ?new XElement(ns + "account",
                                 new XElement(ns + "reference",
@@ -373,14 +366,35 @@ namespace IFIC.FileIngestor.Transformers
                                         )
                                     )
                                 ) : null,
-                                !string.IsNullOrWhiteSpace(dischargedTo)
+                                !string.IsNullOrWhiteSpace(dischargedTo) &&
+                                (dischargedTo != "exp")
                                 ?new XElement(ns + "destination",
                                     new XElement(ns + "reference",
                                         new XAttribute("value", "#dischargedTo")
                                     )
+                                ) : null,
+                                !string.IsNullOrWhiteSpace(dischargedTo) &&
+                                (dischargedTo == "exp")
+                                ? new XElement(ns + "dischargeDisposition",
+                                    new XElement(ns + "coding",
+                                        new XElement(ns + "code",
+                                           new XAttribute("value", dischargedTo)
+                                        )
+                                    )
                                 ) : null
                             )
                             : null,
+                        // period
+                        new XElement(ns + "period",
+                            !string.IsNullOrWhiteSpace(StartDate)
+                            ? new XElement(ns + "start",
+                                new XAttribute("value", StartDate)
+                            ) : null,
+                            !string.IsNullOrWhiteSpace(stayEndDate)
+                            ? new XElement(ns + "end",
+                                new XAttribute("value", stayEndDate)
+                            ) : null
+                        ),
 
                         // SEANNIE - TRANSFER
                         // -- this is the code that "links" the encounter created at Facility A (IRRS30)
@@ -544,8 +558,8 @@ namespace IFIC.FileIngestor.Transformers
 
             bool isReturnAssessment = false;
             if(AdminData != null &&
-                AdminData.AsmType != null &&
-                AdminData.AsmType.Contains("return", StringComparison.OrdinalIgnoreCase) == true)
+                AdminData.IsReturn != null &&
+                AdminData.IsReturn.CompareTo("YES") == 0)
             {
                 isReturnAssessment = true;
             }

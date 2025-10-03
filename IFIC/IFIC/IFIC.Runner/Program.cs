@@ -295,6 +295,7 @@ namespace IFIC.Runner
                 RecId = adminMeta.RecId,
                 AsmOper = adminMeta.AsmOper,
                 AsmType = adminMeta.AsmType,
+                IsReturn = adminMeta.IsReturn,
                 Fiscal = fiscalYear,
                 Quarter = $"{quarterOnly}-{fiscalYear}"
             };
@@ -538,6 +539,7 @@ namespace IFIC.Runner
                 RecId = adminMeta.RecId,
                 AsmOper = asmOper,
                 AsmType = adminMeta.AsmType,
+                IsReturn = adminMeta.IsReturn,
 
                 Fiscal = adminMeta.Fiscal,
                 Quarter = adminMeta.Quarter
