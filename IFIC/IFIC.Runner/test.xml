@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Bundle xmlns="http://hl7.org/fhir">
+  <id value="c7d2f95c-4ba7-4e36-bb7c-bf4a210c8734" />
+  <type value="transaction" />
+  <entry>
+    <fullUrl value="urn:uuid:4df50491-9da3-455f-b217-30279803f706" />
+    <resource>
+      <Encounter xmlns="http://hl7.org/fhir">
+        <id value="4df50491-9da3-455f-b217-30279803f706" />
+        <meta>
+          <profile value="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-encounter" />
+        </meta>
+        <contained>
+          <Location>
+            <id value="dischargedTo" />
+            <meta>
+              <profile value="http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-discharge" />
+            </meta>
+            <type>
+              <coding>
+                <code value="PHU" />
+              </coding>
+            </type>
+            <managingOrganization>
+              <identifier>
+                <value value="54563" />
+              </identifier>
+            </managingOrganization>
+          </Location>
+        </contained>
+        <status value="planned" />
+        <subject>
+          <reference value="urn:uuid:6ae6f33f-e4d6-4edf-b5e4-593e8698e739" />
+        </subject>
+        <period>
+          <start value="2025-06-01" />
+          <end value="2025-06-13" />
+        </period>
+        <hospitalization>
+          <destination value="#dischargedTo" />
+        </hospitalization>
+        <serviceProvider>
+          <identifier>
+            <system value="http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier" />
+            <value value="CIHITESTIRRS30" />
+          </identifier>
+        </serviceProvider>
+      </Encounter>
+    </resource>
+    <request>
+      <method value="POST" />
+      <url value="/encounter/4df50491-9da3-455f-b217-30279803f706/$update" />
+    </request>
+  </entry>
+  <entry>
+    <fullUrl value="urn:uuid:8626eab7-bc32-4670-a22c-f39822289a04" />
+    <resource>
+      <QuestionnaireResponse xmlns="http://hl7.org/fhir">
+        <id value="8626eab7-bc32-4670-a22c-f39822289a04" />
+        <questionnaire>
+          <reference value="Questionnaire/irrs-ltcf" />
+        </questionnaire>
+        <status value="completed" />
+        <subject>
+          <reference value="urn:uuid:6ae6f33f-e4d6-4edf-b5e4-593e8698e739" />
+        </subject>
+        <context>
+          <reference value="urn:uuid:4df50491-9da3-455f-b217-30279803f706" />
+        </context>
+        <item>
+          <linkId value="A" />
+          <item>
+            <linkId value="A8" />
+            <answer>
+              <valueCoding>
+                <code value="6" />
+              </valueCoding>
+            </answer>
+          </item>
+        </item>
+        <item>
+          <linkId value="R" />
+          <item>
+            <linkId value="R5" />
+            <answer>
+              <valueCoding>
+                <code value="3" />
+              </valueCoding>
+            </answer>
+          </item>
+        </item>
+        <item>
+          <linkId value="S" />
+          <item>
+            <linkId value="S2" />
+            <answer>
+              <valueDate value="2025-06-14" />
+            </answer>
+          </item>
+        </item>
+      </QuestionnaireResponse>
+    </resource>
+    <request>
+      <method value="POST" />
+      <url value="urn:uuid:8626eab7-bc32-4670-a22c-f39822289a04" />
+    </request>
+  </entry>
+</Bundle>
