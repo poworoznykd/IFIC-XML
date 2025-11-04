@@ -206,7 +206,10 @@ namespace IFIC.FileIngestor.Transformers
                             )
                             : null,
             #region Commented Code
-// SEANNIE - Test Case 1 - uncomment only 2 "//" for program type
+// ======================================================================================
+// SEANNIE - Test Case 1 - uncomment only 2 "//" for program type  (Test 1-1.4)
+//           *** also need to include the "extension" which defines the "programType1"
+// ======================================================================================
 // contained - program type 1
 //!string.IsNullOrWhiteSpace(patientId) //&&
 ////!string.IsNullOrWhiteSpace(stayStartDate) 
@@ -221,11 +224,9 @@ namespace IFIC.FileIngestor.Transformers
 //                    new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-encounter")
 //                )
 //            ),
-//            new XElement(ns + "status",
-//                new XElement(ns + "profile",
+//                new XElement(ns + "status",
 //                    new XAttribute("value", "planned")     //SEANNIE - I believe this can be hardcoded as "planned"
-//                )
-//            ),
+//                ),
 //            new XElement(ns + "type",
 //                new XElement(ns + "coding",
 //                    new XElement(ns + "code",
@@ -240,8 +241,9 @@ namespace IFIC.FileIngestor.Transformers
 //            ),
 //            new XElement(ns + "period",
 //                new XElement(ns + "start",
-//                    new XAttribute("value", "2019-08-01")      // could be the variable stayStartDate - but the test has it set to 2019-08-01
-//                ),
+//                    new XAttribute("value", "2019-08-01")      // (2019-08-01) could be the variable stayStartDate - but the test has it set to 2019-08-01
+//                )
+//            ),
 ////                new XElement(ns + "end",
 ////                    new XAttribute("value", stayEndDate)     // SEANNIE make this population conditional on stayEndDate not being null/blank
 ////                )
@@ -257,84 +259,88 @@ namespace IFIC.FileIngestor.Transformers
 //                )
 //            )
 //        )
-//    ) )  // SEANNIE - had to add another ")"
-//    : null,
+//    ) 
+//   : null,
 
-// Leave this MIS Functional Center stuff commented out for now 
-//!string.IsNullOrWhiteSpace(admittedFrom)
-//    ? new XElement(ns + "contained",
-//        new XElement(ns + "Location",
-//            new XElement(ns + "id",
-//                new XAttribute("value", "misCode")
-//            ),
-//            new XElement(ns + "meta",
-//                new XElement(ns + "profile",
-//                    new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-mis-code")
-//                )
-//            ),
-//            new XElement(ns + "type",
-//                new XElement(ns + "coding",
-//                    new XElement(ns + "code",
-//                        new XAttribute("value", admittedFromFacilityNumber) 
-//                    )
-//                )
-//            ),
-//                new XElement(ns + "physicalType",
-//                new XElement(ns + "coding",
-//                    new XElement(ns + "code",
-//                        new XAttribute("value", "wa")
-//                    )
-//                )
-//            )
-//        )
-//    )
-//    : null,
+                        // Leave this MIS Functional Center stuff commented out for now 
+                        //!string.IsNullOrWhiteSpace(admittedFrom)
+                        //    ? new XElement(ns + "contained",
+                        //        new XElement(ns + "Location",
+                        //            new XElement(ns + "id",
+                        //                new XAttribute("value", "misCode")
+                        //            ),
+                        //            new XElement(ns + "meta",
+                        //                new XElement(ns + "profile",
+                        //                    new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-mis-code")
+                        //                )
+                        //            ),
+                        //            new XElement(ns + "type",
+                        //                new XElement(ns + "coding",
+                        //                    new XElement(ns + "code",
+                        //                        new XAttribute("value", admittedFromFacilityNumber) 
+                        //                    )
+                        //                )
+                        //            ),
+                        //                new XElement(ns + "physicalType",
+                        //                new XElement(ns + "coding",
+                        //                    new XElement(ns + "code",
+                        //                        new XAttribute("value", "wa")
+                        //                    )
+                        //                )
+                        //            )
+                        //        )
+                        //    )
+                        //    : null,
 
-//// leave this Bed Type stuff commented out for now
-//!string.IsNullOrWhiteSpace(admittedFrom)//TODO - hardcoded? (admittedFrom = Program Type 1?)
-//    ? new XElement(ns + "contained",
-//        new XElement(ns + "Location",
-//            new XElement(ns + "id",
-//                new XAttribute("value", "bedType")
-//            ),
-//            new XElement(ns + "meta",
-//                new XElement(ns + "profile",
-//                    new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-bed-type")
-//                )
-//            ),
-//            new XElement(ns + "type",
-//                new XElement(ns + "coding",
-//                    new XElement(ns + "code",
-//                        new XAttribute("value", "CCCF")//TODO- hardcoded? (CCCF = Complex Continuing Care Facility
-//                    )
-//                )
-//            ),
-//                new XElement(ns + "physicalType",
-//                new XElement(ns + "coding",
-//                    new XElement(ns + "code",
-//                        new XAttribute("value", "bd")//TODO - hard coded? (bd = Bed Type)
-//                    )
-//                )
-//            )
-//        )
-//    )
-//    : null,
+                        //// leave this Bed Type stuff commented out for now
+                        //!string.IsNullOrWhiteSpace(admittedFrom)//TODO - hardcoded? (admittedFrom = Program Type 1?)
+                        //    ? new XElement(ns + "contained",
+                        //        new XElement(ns + "Location",
+                        //            new XElement(ns + "id",
+                        //                new XAttribute("value", "bedType")
+                        //            ),
+                        //            new XElement(ns + "meta",
+                        //                new XElement(ns + "profile",
+                        //                    new XAttribute("value", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-location-bed-type")
+                        //                )
+                        //            ),
+                        //            new XElement(ns + "type",
+                        //                new XElement(ns + "coding",
+                        //                    new XElement(ns + "code",
+                        //                        new XAttribute("value", "CCCF")//TODO- hardcoded? (CCCF = Complex Continuing Care Facility
+                        //                    )
+                        //                )
+                        //            ),
+                        //                new XElement(ns + "physicalType",
+                        //                new XElement(ns + "coding",
+                        //                    new XElement(ns + "code",
+                        //                        new XAttribute("value", "bd")//TODO - hard coded? (bd = Bed Type)
+                        //                    )
+                        //                )
+                        //            )
+                        //        )
+                        //    )
+                        //    : null,
             #endregion
-                        
+
             #region Commented Code 2
-                            //// contained - Reference to the contained program type
+                        //// contained - Reference to the contained program type
 
-                            //new XElement(ns + "extension",
-                            //    new XAttribute("url", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-includes"),
-                            //    new XElement(ns + "valueReference",
-                            //        new XElement(ns + "reference",
-                            //            new XAttribute("value", "#programType1")
-                            //        )
-                            //    )
-                            //),
+// ======================================================================================
+// SEANNIE - Test Case 1 - uncomment only 2 "//" for program type  (Test 1-1.4)
+//           *** also need to include the "extension" which defines the "programType1"
+// ======================================================================================
+//    new XElement(ns + "extension",
+//        new XAttribute("url", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-includes"),
+//        new XElement(ns + "valueReference",
+//            new XElement(ns + "reference",
+//                new XAttribute("value", "#programType1")
+//            )
+//        )
+//    ),
 
             #endregion
-           
+
                         new XElement(ns + "status", new XAttribute("value", "planned")),
                         // contained - Patient ID
                         !string.IsNullOrWhiteSpace(patientId)
