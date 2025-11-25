@@ -233,6 +233,8 @@ namespace IFIC.FileIngestor.Transformers
             var urinaryTractInfection = "";
             var cancer = "";
             var diabetesMellitus = "";
+            var huntingtonsDisease = "";
+            var downsSyndrome = "";
             var diseaseCode = "";
             var diseaseDiagnosisICD10 = "";
             var diseaseCode_2 = "";
@@ -600,6 +602,8 @@ namespace IFIC.FileIngestor.Transformers
                 sectionI.TryGetValue("I1s", out urinaryTractInfection);
                 sectionI.TryGetValue("I1t", out cancer);
                 sectionI.TryGetValue("I1u", out diabetesMellitus);
+                sectionI.TryGetValue("I1aa", out huntingtonsDisease);
+                sectionI.TryGetValue("I1ab", out downsSyndrome);
 
                 sectionI.TryGetValue("I2aa", out diseaseCode);
                 sectionI.TryGetValue("I2ab", out diseaseDiagnosisICD10);
@@ -2195,6 +2199,26 @@ namespace IFIC.FileIngestor.Transformers
                                     new XElement(ns + "answer",
                                         new XElement(ns + "valueCoding",
                                             new XElement(ns + "code", SafeAttr("value", diabetesMellitus))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(huntingtonsDisease)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1aa")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", huntingtonsDisease))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(downsSyndrome)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1ab")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", downsSyndrome))
                                         )
                                     )
                                 ) : null
