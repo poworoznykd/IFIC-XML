@@ -76,6 +76,26 @@ namespace IFIC.FileIngestor.Transformers
             parsedFile.Patient.TryGetValue("B4", out var language);
             parsedFile.Patient.TryGetValue("B6", out var postalCode);
             parsedFile.Patient.TryGetValue("OrgID", out var orgId);
+            //Retrieve racialized group values from parsed file
+            var racialized = parsedFile.Patient
+                .Where(f => f.Key.StartsWith("B11") && !string.IsNullOrWhiteSpace(f.Value))
+                .Select(f => f.Value.Trim())
+                .ToList();
+            // Add racialized extensions if any exist to a list of el,eemnts
+            var racializedExtensions = new List<XElement>();
+            if (racialized.Any())
+            {
+                foreach (var group in racialized)
+                {
+                    racializedExtensions.Add(
+                        new XElement(ns + "extension",
+                            new XAttribute("url", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-racialized-group"),
+                            new XElement(ns + "valueCode", new XAttribute("value", group))
+                        )
+                    );
+                }
+            }
+
 
             // SEANNIE
             // extra logic to handle the case of unknown/not-applicable HCN
@@ -106,7 +126,8 @@ namespace IFIC.FileIngestor.Transformers
                     ? new XElement(ns + "extension", new XAttribute("url", "http://cihi.ca/fhir/irrs/StructureDefinition/irrs-ext-birth-sex"),
                         new XElement(ns + "valueCode", new XAttribute("value", sexAtBirth)))
                     : null,
-
+                // Add all the racialized group extensions
+                racializedExtensions.Any() ? racializedExtensions : null,
                 // Identifier - Health Card Number
                 //  SEANNIE - needed to add logic to catch the override logic for
                 //            HCN=1 (unknown) and 2 (not-applicable)
