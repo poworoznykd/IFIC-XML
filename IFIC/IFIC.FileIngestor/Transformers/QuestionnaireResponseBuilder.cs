@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
@@ -233,8 +234,29 @@ namespace IFIC.FileIngestor.Transformers
             var urinaryTractInfection = "";
             var cancer = "";
             var diabetesMellitus = "";
+            //new diseases
+            var arthritis = "";
+            var seizureDisorders = "";
+            var abi = "";
+            var als = "";
+            var cerebralPalsy = "";
             var huntingtonsDisease = "";
             var downsSyndrome = "";
+            var austismSpectrumDisorder = "";
+            var otherIntellectualDisability = "";
+            var atrialFibrillation = "";
+            var peripheralVascularDisease = "";
+            var postTraumaticStressDisorder = "";
+            var sepsis = "";
+            var chronicHepatitis = "";
+            var clostridiumDifficile = "";
+            var tuberculosis = "";
+            var multidrugResistantOrganism = "";
+            var hivAids = "";
+            var respiratoryInfection = "";
+            var chronicKidneyDisease = "";
+
+
             var diseaseCode = "";
             var diseaseDiagnosisICD10 = "";
             var diseaseCode_2 = "";
@@ -602,8 +624,28 @@ namespace IFIC.FileIngestor.Transformers
                 sectionI.TryGetValue("I1s", out urinaryTractInfection);
                 sectionI.TryGetValue("I1t", out cancer);
                 sectionI.TryGetValue("I1u", out diabetesMellitus);
+
+                sectionI.TryGetValue("I1v", out arthritis);
+                sectionI.TryGetValue("I1w", out seizureDisorders);
+                sectionI.TryGetValue("I1x", out abi);
+                sectionI.TryGetValue("I1y", out als);
+                sectionI.TryGetValue("I1z", out cerebralPalsy);
                 sectionI.TryGetValue("I1aa", out huntingtonsDisease);
                 sectionI.TryGetValue("I1ab", out downsSyndrome);
+                sectionI.TryGetValue("I1ac", out austismSpectrumDisorder);
+                sectionI.TryGetValue("I1ad", out otherIntellectualDisability);
+                sectionI.TryGetValue("I1ae", out atrialFibrillation);
+                sectionI.TryGetValue("I1af", out peripheralVascularDisease);
+                sectionI.TryGetValue("I1ag", out postTraumaticStressDisorder);
+                sectionI.TryGetValue("I1ah", out sepsis);
+                sectionI.TryGetValue("I1ai", out chronicHepatitis);
+                sectionI.TryGetValue("I1aj", out clostridiumDifficile);
+                sectionI.TryGetValue("I1ak", out tuberculosis);
+                sectionI.TryGetValue("I1al", out multidrugResistantOrganism);
+                sectionI.TryGetValue("I1am", out hivAids);
+                sectionI.TryGetValue("I1an", out respiratoryInfection);
+                sectionI.TryGetValue("I1ao", out chronicKidneyDisease);
+                                        
 
                 sectionI.TryGetValue("I2aa", out diseaseCode);
                 sectionI.TryGetValue("I2ab", out diseaseDiagnosisICD10);
@@ -2203,6 +2245,56 @@ namespace IFIC.FileIngestor.Transformers
                                     )
                                 ) : null,
 
+                                !string.IsNullOrWhiteSpace(arthritis)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1v")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", arthritis))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(seizureDisorders)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1w")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", seizureDisorders))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(abi)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1x")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", abi))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(als)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1y")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", als))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(cerebralPalsy)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1z")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", cerebralPalsy))
+                                        )
+                                    )
+                                ) : null,
+
                                 !string.IsNullOrWhiteSpace(huntingtonsDisease)
                                 ? new XElement(ns + "item",
                                     new XElement(ns + "linkId", SafeAttr("value", "I1aa")),
@@ -2219,6 +2311,136 @@ namespace IFIC.FileIngestor.Transformers
                                     new XElement(ns + "answer",
                                         new XElement(ns + "valueCoding",
                                             new XElement(ns + "code", SafeAttr("value", downsSyndrome))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(austismSpectrumDisorder)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1ac")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", austismSpectrumDisorder))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(otherIntellectualDisability)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1ad")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", otherIntellectualDisability))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(atrialFibrillation)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1ae")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", atrialFibrillation))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(peripheralVascularDisease)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1af")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", peripheralVascularDisease))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(postTraumaticStressDisorder)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1ag")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", postTraumaticStressDisorder))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(sepsis)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1ah")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", sepsis))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(chronicHepatitis)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1ai")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", chronicHepatitis))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(clostridiumDifficile)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1aj")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", clostridiumDifficile))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(tuberculosis)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1ak")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", tuberculosis))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(multidrugResistantOrganism)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1al")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", multidrugResistantOrganism))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(hivAids)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1am")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", hivAids))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(respiratoryInfection)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1an")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", respiratoryInfection))
+                                        )
+                                    )
+                                ) : null,
+
+                                !string.IsNullOrWhiteSpace(chronicKidneyDisease)
+                                ? new XElement(ns + "item",
+                                    new XElement(ns + "linkId", SafeAttr("value", "I1ao")),
+                                    new XElement(ns + "answer",
+                                        new XElement(ns + "valueCoding",
+                                            new XElement(ns + "code", SafeAttr("value", chronicKidneyDisease))
                                         )
                                     )
                                 ) : null
