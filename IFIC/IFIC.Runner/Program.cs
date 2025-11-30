@@ -139,10 +139,17 @@ namespace IFIC.Runner
                         transmitRoot = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "LTCF Transmit"));
                     }
 
-                    string queuedFolder = Path.Combine(transmitRoot, "Queued");
+                    string queued = config["QueuedFolderName"];
+                    if (string.IsNullOrWhiteSpace(queued))
+                    {
+                        queued = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "IFIC.Runner", "LTCF Transmit", queued));
+                    }
+
+                    string queuedFolder = Path.Combine(transmitRoot, queued);
                     Directory.CreateDirectory(queuedFolder);
 
                     var datFiles = GetQueuedDatFilesOldestFirst(queuedFolder);
+
                     if (datFiles.Count == 0)
                     {
                         logger.LogWarning("No .dat files found in Queued.");
