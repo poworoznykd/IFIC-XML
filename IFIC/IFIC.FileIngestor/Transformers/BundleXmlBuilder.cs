@@ -40,9 +40,21 @@ namespace IFIC.FileIngestor.Transformers
             if (encounterXmlBuilder != null && adminMeta.EncOper != "USE")
             {
                 bool isReturnAssessment = false;
+//                if (adminMeta != null &&
+//                    adminMeta.AsmType != null &&
+//                    adminMeta.AsmType.Contains("return", StringComparison.OrdinalIgnoreCase) == true)
+//                {
+//                    isReturnAssessment = true;
+//                }
+                // SEANNIE - the code above is old and was looking at the AsmType to see
+                //           if it was a "return" assessment
+                // in late Sept 2025, a new .dat file parameter (called "isReturn") was added
+                // and is present on many assessment types (including and subsequent to a "return"
+                // assessment).  This parameter needs to be looked at in order to determine whether
+                // the "readmission" element needs to be set in the encounter bundle
                 if (adminMeta != null &&
-                    adminMeta.AsmType != null &&
-                    adminMeta.AsmType.Contains("return", StringComparison.OrdinalIgnoreCase) == true)
+                    adminMeta.IsReturn != null &&
+                    adminMeta.IsReturn.CompareTo("YES") == 0)
                 {
                     isReturnAssessment = true;
                 }

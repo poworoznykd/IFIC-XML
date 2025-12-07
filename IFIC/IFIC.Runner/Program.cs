@@ -28,7 +28,7 @@ using IFIC.ClarityClient;   // ADO.NET client + options
 using IFIC.FileIngestor;   // ClarityLTCFUpdateService + AdminMetadataKeys
 using IFIC.ApiClient;
 using IFIC.Auth;
-using IFIC.FileIngestor.Models;
+using IFIC.FileIngestor.Models;      
 using IFIC.FileIngestor.Parsers;
 using IFIC.FileIngestor.Transformers;
 using Microsoft.Extensions.Configuration;
@@ -186,7 +186,7 @@ namespace IFIC.Runner
                                 initialFiscal,
                                 initialQuarter,
                                 SavedIdsByKey,
-                                ltcfUpdateService
+                                ltcfUpdateService   
                             );
 
 
@@ -194,8 +194,8 @@ namespace IFIC.Runner
                             logger.LogInformation("Routed {File} to {Status}.", Path.GetFileName(datPath), passed ? "Processed" : "Errored");
 
                             // move output <BUNDLE> xml to folder
-                            RouteDatFile(outputFolder + "\\" + Path.GetFileNameWithoutExtension(datPath) + ".xml", adminMeta, passed, transmitRoot);
-                            logger.LogInformation("Routed {File} to {Status}.", Path.GetFileNameWithoutExtension(datPath) + ".xml", passed ? "Processed" : "Errored");
+                            RouteDatFile(outputFolder+"\\"+ Path.GetFileNameWithoutExtension(datPath) + ".xml", adminMeta, passed, transmitRoot);
+                            logger.LogInformation("Routed {File} to {Status}.", Path.GetFileNameWithoutExtension(datPath)+".xml", passed ? "Processed" : "Errored");
 
                         }
                         catch (Exception ex)
@@ -283,7 +283,7 @@ namespace IFIC.Runner
             //     "Queued-#####" folder to create - I will remove the "Queued-#####\"
             //   - and add the "RunLogs" output folder for the CIHI response output
             string runLogsDir = datPath.Substring(0, (lastBackSlash - 13)) + "\\RunLogs";
-
+            
             // Build strongly-typed ADMIN from the parser's dictionary
             AdminMetadata adminMeta = AdminMetadata.FromParsedFlatFile(parsedFile);
 
@@ -319,7 +319,7 @@ namespace IFIC.Runner
                 {
                     adminMeta.FhirPatID = cachedPatId;
                     //Sean this was added to change the operation to use
-                    if (string.Equals(adminMeta.PatOper, "CREATE", StringComparison.OrdinalIgnoreCase))
+                    if(string.Equals(adminMeta.PatOper, "CREATE", StringComparison.OrdinalIgnoreCase))
                     {
                         adminMeta.PatOper = "USE";
                     }
@@ -367,7 +367,7 @@ namespace IFIC.Runner
             var patientBuilder = parsedFile.Patient.Any() ? new PatientXmlBuilder(adminMeta) : null;
             var encounterBuilder = parsedFile.Encounter.Any() ? new EncounterXmlBuilder(adminMeta) : null;
             var questionnaireResponseBuilder = parsedFile.AssessmentSections.Any() ? new QuestionnaireResponseBuilder(adminMeta) : null;
-
+            
             //PLEASE DO NOT DELETE IT IS THE LUCKY CODE
             //if (adminMeta.PatOper != "USE")
             //    patientBuilder?.BuildPatientBundle(parsedFile);
@@ -391,7 +391,7 @@ namespace IFIC.Runner
             //string outputPath = Path.Combine(outputFolder, $"fhir_bundle_{timestamp}.xml");
 
             // use the same baseFilename as the input data file
-            string outputPath = Path.Combine(outputFolder, baseFileName + ".xml");
+            string outputPath = Path.Combine(outputFolder, baseFileName+".xml");
             SaveWithDeclaration(outputPath, bundleResponseDoc.ToString());
             logger.LogInformation("FHIR Bundle saved to: {OutputPath}", outputPath);
             File.AppendAllText(runLogFile, $"FHIR Bundle saved: {outputPath}{Environment.NewLine}");
@@ -433,7 +433,7 @@ namespace IFIC.Runner
             int bundStart = apiResponse.IndexOf('<');
             string respBund = apiResponse.Substring(bundStart);
             string respFile = runLogsDir + "\\Errored\\runlog_" + baseFileName + ".xml";
-            if (passed) respFile = runLogsDir + "\\Processed\\runlog_" + baseFileName + ".xml";
+            if(passed) respFile = runLogsDir + "\\Processed\\runlog_" + baseFileName + ".xml";
             SaveWithDeclaration(respFile, respBund);
 
             // SEANNIE
@@ -451,7 +451,7 @@ namespace IFIC.Runner
             {
                 string finalStatus = passed ? "PASS" : "FAIL";
                 await ltcfUpdateService.ApplyUpdatesAsync(
-                    adminMeta,
+                    adminMeta, 
                     finalStatus,
                     IRRSApiClient.responseContent,
                     System.Threading.CancellationToken.None);
@@ -759,12 +759,12 @@ namespace IFIC.Runner
             File.Move(datPath, targetDat, overwrite: true);
 
             // Move matching .xml if present (same basename)
-            //            string xmlCandidate = Path.ChangeExtension(datPath, ".xml");
-            //            if (File.Exists(xmlCandidate))
-            //            {
-            //                string targetXml = Path.Combine(destFolder, Path.GetFileName(xmlCandidate));
-            //                File.Move(xmlCandidate, targetXml, overwrite: true);
-            //            }
+//            string xmlCandidate = Path.ChangeExtension(datPath, ".xml");
+//            if (File.Exists(xmlCandidate))
+//            {
+//                string targetXml = Path.Combine(destFolder, Path.GetFileName(xmlCandidate));
+//                File.Move(xmlCandidate, targetXml, overwrite: true);
+//            }
         }
 
         /// <summary>

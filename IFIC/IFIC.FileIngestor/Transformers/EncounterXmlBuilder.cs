@@ -230,7 +230,7 @@ namespace IFIC.FileIngestor.Transformers
 //            new XElement(ns + "type",
 //                new XElement(ns + "coding",
 //                    new XElement(ns + "code",
-//                        new XAttribute("value", "PRG02")  // SEANNIE - should be read from parameters really
+//                        new XAttribute("value", "PRG02")  // (PRG02) SEANNIE - should be read from parameters really
 //                    )
 //                )
 //            ),
