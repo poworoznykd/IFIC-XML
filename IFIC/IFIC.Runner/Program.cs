@@ -92,7 +92,8 @@ namespace IFIC.Runner
                 Directory.CreateDirectory(logFolder);
 
                 string runTimestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                string runLogFile = Path.Combine(logFolder, $"runlog_{runTimestamp}.txt");
+                string runDay = DateTime.Now.ToString("yyyyMMdd");
+                string runLogFile = Path.Combine(logFolder, $"runlog_{runDay}.log");
 
                 try
                 {
@@ -131,6 +132,10 @@ namespace IFIC.Runner
                         File.AppendAllText(runLogFile, "Simulation completed successfully." + Environment.NewLine);
                         return;
                     }
+
+                    // output header into runlog indicating date/time of running
+                    File.AppendAllText(runLogFile, Environment.NewLine + "------------------ RUNTIME : " + runTimestamp + " ------------------" + Environment.NewLine);
+
                     // DEFAULT MODE: Process ALL .dat files in <TransmitRoot>\Queued
                     // TransmitRoot from appsettings.json (fallback if missing)
                     string transmitRoot = config["TransmitRoot"];

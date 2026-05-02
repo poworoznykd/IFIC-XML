@@ -108,6 +108,12 @@ namespace IFIC.FileIngestor.Transformers
             parsedFile.Encounter.TryGetValue("R4", out var dischargedToFacilityNumber);
 
 
+            // determine if we are running in vendor mode or facility mode
+            //   -- do this simply by looking at the orgID in the incoming .dat file
+            //      for my vendor testing origIDs (HACK)
+            string systemID = "http://cihi.ca/fhir/NamingSystem/on-ministry-of-health-and-long-term-care-submission-identifier";
+            if ((orgId.CompareTo("CIHITESTIRRS30") == 0) || (orgId.CompareTo("CIHITESTIRRS29") == 0)) systemID = "http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier";
+
 
             // Create Bundle document
             var result = new XElement(ns + "entry",
@@ -453,7 +459,10 @@ namespace IFIC.FileIngestor.Transformers
                         !string.IsNullOrWhiteSpace(orgId)
                         ? new XElement(ns + "serviceProvider",
                             new XElement(ns + "identifier",
-                                new XElement(ns + "system", new XAttribute("value", "http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier")),
+// for VENDOR TEST
+//                                new XElement(ns + "system", new XAttribute("value", "http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier")),
+//                                new XElement(ns + "system", new XAttribute("value", "http://cihi.ca/fhir/NamingSystem/on-ministry-of-health-and-long-term-care-submission-identifier")),
+                                new XElement(ns + "system", new XAttribute("value", systemID)),
                                 new XElement(ns + "value", new XAttribute("value", orgId))
                             )
                             ) : null

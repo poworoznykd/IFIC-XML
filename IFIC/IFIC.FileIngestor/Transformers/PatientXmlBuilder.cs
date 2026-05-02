@@ -76,6 +76,13 @@ namespace IFIC.FileIngestor.Transformers
             parsedFile.Patient.TryGetValue("B4", out var language);
             parsedFile.Patient.TryGetValue("B6", out var postalCode);
             parsedFile.Patient.TryGetValue("OrgID", out var orgId);
+
+            // determine if we are running in vendor mode or facility mode
+            //   -- do this simply by looking at the orgID in the incoming .dat file
+            //      for my vendor testing origIDs (HACK)
+            string systemID = "http://cihi.ca/fhir/NamingSystem/on-ministry-of-health-and-long-term-care-submission-identifier";
+            if ((orgId.CompareTo("CIHITESTIRRS30") == 0) || (orgId.CompareTo("CIHITESTIRRS29") == 0)) systemID = "http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier";
+
             //Retrieve racialized group values from parsed file
             var racialized = parsedFile.Patient
                 .Where(f => f.Key.StartsWith("B11") && !string.IsNullOrWhiteSpace(f.Value))
@@ -208,7 +215,10 @@ namespace IFIC.FileIngestor.Transformers
                 !string.IsNullOrWhiteSpace(orgId)
                     ? new XElement(ns + "managingOrganization",
                         new XElement(ns + "identifier",
-                            new XElement(ns + "system", new XAttribute("value", "http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier")),
+// for VENDOR TEST
+//                            new XElement(ns + "system", new XAttribute("value", "http://cihi.ca/fhir/NamingSystem/cihi-submission-identifier")),
+//                            new XElement(ns + "system", new XAttribute("value", "http://cihi.ca/fhir/NamingSystem/on-ministry-of-health-and-long-term-care-submission-identifier")),
+                            new XElement(ns + "system", new XAttribute("value", systemID)),
                             new XElement(ns + "value", new XAttribute("value", orgId))
                         )
                     )

@@ -79,7 +79,7 @@ namespace IFIC.Auth
                 scope = scope,
                 aud = audience,
                 iat = now,
-                exp = now + 300
+                exp = now + 400
             };
 
             var jwt = JWT.Encode(payload, rsaPrivateKey, JwsAlgorithm.RS256);

@@ -75,7 +75,7 @@ namespace IFIC.FileIngestor.Transformers
                 //  -- this is Darryl's code to construct/build the proper Assessment entry
                 //     I have added another "shenanigan" method for the purposes of Vendor Testing
                 //     only "BuildReferralRequest()" - to be uncommented and used in 
-                //     TestCase #5
+                //     TestCase #5 (step 5-1.2)
                 var questionnaireEntry = questionnaireResponseBuilder.BuildQuestionnaireResponseEntry(
                     parsedFile,
                     patientId,

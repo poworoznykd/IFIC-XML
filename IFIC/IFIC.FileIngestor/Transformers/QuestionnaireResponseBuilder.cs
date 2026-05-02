@@ -4036,8 +4036,8 @@ namespace IFIC.FileIngestor.Transformers
                         new XElement(ns + "method", new XAttribute("value", "POST")),
 
                         // SEANNIE - TRANSFER
-                        // -- when we're running TestCase 5 switch these lines -- super kludgee
-                        //    LMFAO
+                        // -- when we're running TestCase 5 (step 5-1.2) switch these lines 
+                        //
                         new XElement(ns + "url", new XAttribute("value", "/QuestionnaireResponse"))
 //                        new XElement(ns + "url", new XAttribute("value", "/ReferralRequest"))
                     );
