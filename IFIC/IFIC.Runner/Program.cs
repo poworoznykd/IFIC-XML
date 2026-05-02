@@ -49,6 +49,61 @@ using System.Runtime.CompilerServices;
 
 namespace IFIC.Runner
 {
+    #region Notes
+    /*
+     * INVESTIGATION NOTE FOR BUG #1 – Encounter Not Being Created (Intermittent Issue)
+     **************** Note can be removed once the issue is resolved and a root cause is identified.***********
+     * We observed that in some cases the Encounter resource is not created when processing a file,
+     * which causes the entire submission to fail. However, if the IFIC application is restarted
+     * and the same file is reprocessed, the submission succeeds.
+     *
+     * This behavior suggests the issue is NOT with the file itself or CIHI validation,
+     * but rather with state being retained in memory between file submissions within the same run.
+     *
+     * The most likely area of concern is the SavedIdsByKey dictionary, which persists across
+     * all files processed in a single execution of the program. This dictionary is used to cache
+     * previously returned CIHI IDs (Patient, Encounter, QuestionnaireResponse) and reuse them
+     * for subsequent files when the same keys are encountered.
+     *
+     * Specifically, for Encounter processing:
+     *
+     * - If a matching FhirEncKey is found in SavedIdsByKey, we reuse the cached Encounter ID.
+     * - When this happens, the operation is changed from CREATE to USE.
+     *
+     * This means:
+     *   Instead of creating a new Encounter, we are telling CIHI to reuse an existing one.
+     *
+     * Potential problem:
+     * - If the cached Encounter ID is incorrect, incomplete, or was derived from a previous
+     *   failed or partial submission, we may be switching to USE when we should actually
+     *   still be performing a CREATE.
+     * - This would result in the Encounter not being created and the submission failing.
+     *
+     * Why restart fixes it:
+     * - Restarting the application clears the SavedIdsByKey dictionary and all in-memory state.
+     * - As a result, the Encounter is processed as CREATE again, and the submission succeeds.
+     *
+     * Additional contributing factor:
+     * - The CIHI API response values (IRRSApiClient.clientMessage / responseContent) are static/shared.
+     * - If these are not cleared before each submission, it is possible that response data from a
+     *   previous file is being reused, which may lead to incorrect PASS/FAIL evaluation or incorrect ID extraction.
+     *
+     * Debugging added:
+     * - Logging has been added to track when an Encounter cache hit occurs:
+     *     ENCOUNTER CACHE HIT: EncKey=..., CachedEncID=...
+     * - Logging before bundle creation shows the final operation (CREATE vs USE) and IDs.
+     *
+     * Next steps:
+     * - Confirm whether Encounter is incorrectly switching to USE when it should remain CREATE.
+     * - Confirm whether cached Encounter IDs are valid and correspond to the correct file/context.
+     * - Ensure API response fields are cleared between submissions to avoid stale data usage.
+     *
+     * NOTE:
+     * The dictionary must remain outside the loop to support multi-file processing,
+     * but its contents must be validated to ensure we are not reusing invalid or stale IDs.
+     */
+    #endregion
+
     public class Program
     {
         /// <summary>
@@ -330,15 +385,43 @@ namespace IFIC.Runner
                     }
                 }
 
+                /*
+                * Bug #1 – Encounter Cache Issue
+                *
+                * We were hitting the cache (SavedIdsByKey) and doing two things:
+                *   -> Setting the cached Encounter ID
+                *   -> Changing CREATE -> USE
+                *
+                * Problem is, if the file actually wants CREATE, we were overriding that
+                * and skipping the Encounter creation completely.
+                *
+                * That explains why:
+                *   -> First run fails (we force USE)
+                *   -> Restart works (cache is empty, so CREATE runs properly)
+                *
+                * Fix:
+                *   -> Only use the cached Encounter if the operation is already USE
+                *   -> If the file says CREATE, leave it alone
+                *
+                * Basically:
+                *   Don't let the cache override what the file is asking us to do.
+                */
                 // Encounter ID lookup
                 if (!string.IsNullOrWhiteSpace(adminMeta.FhirEncKey) &&
                     savedIdsByKey.TryGetValue(adminMeta.FhirEncKey, out var cachedEncId))
                 {
-                    adminMeta.FhirEncID = cachedEncId;
-                    //Sean this was added to change the operation to use
-                    if (string.Equals(adminMeta.EncOper, "CREATE", StringComparison.OrdinalIgnoreCase))
+                    File.AppendAllText(runLogFile,
+                        $"ENCOUNTER CACHE HIT: EncKey={adminMeta.FhirEncKey}, CachedEncID={cachedEncId}, File={Path.GetFileName(datPath)}{Environment.NewLine}");
+
+                    // Only reuse cached encounter if operation is already USE
+                    if (string.Equals(adminMeta.EncOper, "USE", StringComparison.OrdinalIgnoreCase))
                     {
-                        adminMeta.EncOper = "USE";
+                        adminMeta.FhirEncID = cachedEncId;
+                    }
+                    else
+                    {
+                        File.AppendAllText(runLogFile,
+                            $"ENCOUNTER CACHE IGNORED: File requested EncOper={adminMeta.EncOper}, so cached EncID was NOT reused. File={Path.GetFileName(datPath)}{Environment.NewLine}");
                     }
                 }
 
@@ -372,7 +455,22 @@ namespace IFIC.Runner
             var patientBuilder = parsedFile.Patient.Any() ? new PatientXmlBuilder(adminMeta) : null;
             var encounterBuilder = parsedFile.Encounter.Any() ? new EncounterXmlBuilder(adminMeta) : null;
             var questionnaireResponseBuilder = parsedFile.AssessmentSections.Any() ? new QuestionnaireResponseBuilder(adminMeta) : null;
-            
+            //Bug #1 - Added to log the key metadata before building the bundle - this will help us understand if there are issues with the ID/operation combinations before submission
+            logger.LogInformation(
+                "Before bundle build: PatKey={PatKey}, PatID={PatID}, PatOper={PatOper}, EncKey={EncKey}, EncID={EncID}, EncOper={EncOper}, RecId={RecId}",
+                adminMeta.FhirPatKey,
+                adminMeta.FhirPatID,
+                adminMeta.PatOper,
+                adminMeta.FhirEncKey,
+                adminMeta.FhirEncID,
+                adminMeta.EncOper,
+                adminMeta.RecId);
+            //Bug #1 - if you see EncOper=USE but EncID=null, then you know the issue is that we tried to reuse an Encounter but didn't have a cached ID for it - this could be because the key was missing/incorrect in the ADMIN section, or because the first assessment (which should have created and cached the ID) failed to do so
+            Console.WriteLine(
+                $"BEFORE BUILD → PatKey={adminMeta.FhirPatKey}, PatID={adminMeta.FhirPatID}, PatOper={adminMeta.PatOper}, " +
+                $"EncKey={adminMeta.FhirEncKey}, EncID={adminMeta.FhirEncID}, EncOper={adminMeta.EncOper}, RecId={adminMeta.RecId}"
+            );
+
             //PLEASE DO NOT DELETE IT IS THE LUCKY CODE
             //if (adminMeta.PatOper != "USE")
             //    patientBuilder?.BuildPatientBundle(parsedFile);
@@ -404,6 +502,9 @@ namespace IFIC.Runner
             // Submit the bundle
             logger.LogInformation("Submitting bundle to CIHI...");
             File.AppendAllText(runLogFile, $"Submitting bundle at: {DateTime.Now}{Environment.NewLine}");
+            //Bug #1 - Added to clear variables before submission - otherwise if the API client doesn't update them, we might be evaluating an old response
+            IRRSApiClient.clientMessage = string.Empty;
+            IRRSApiClient.responseContent = string.Empty;
             await apiClient.SubmitXmlAsync(bundleResponseDoc.ToString());
 
             string apiResponse = IRRSApiClient.clientMessage ?? string.Empty;
