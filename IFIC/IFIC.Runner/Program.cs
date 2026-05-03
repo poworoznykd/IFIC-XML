@@ -456,20 +456,12 @@ namespace IFIC.Runner
             var encounterBuilder = parsedFile.Encounter.Any() ? new EncounterXmlBuilder(adminMeta) : null;
             var questionnaireResponseBuilder = parsedFile.AssessmentSections.Any() ? new QuestionnaireResponseBuilder(adminMeta) : null;
             //Bug #1 - Added to log the key metadata before building the bundle - this will help us understand if there are issues with the ID/operation combinations before submission
-            logger.LogInformation(
-                "Before bundle build: PatKey={PatKey}, PatID={PatID}, PatOper={PatOper}, EncKey={EncKey}, EncID={EncID}, EncOper={EncOper}, RecId={RecId}",
-                adminMeta.FhirPatKey,
-                adminMeta.FhirPatID,
-                adminMeta.PatOper,
-                adminMeta.FhirEncKey,
-                adminMeta.FhirEncID,
-                adminMeta.EncOper,
-                adminMeta.RecId);
-            //Bug #1 - if you see EncOper=USE but EncID=null, then you know the issue is that we tried to reuse an Encounter but didn't have a cached ID for it - this could be because the key was missing/incorrect in the ADMIN section, or because the first assessment (which should have created and cached the ID) failed to do so
-            Console.WriteLine(
-                $"BEFORE BUILD → PatKey={adminMeta.FhirPatKey}, PatID={adminMeta.FhirPatID}, PatOper={adminMeta.PatOper}, " +
-                $"EncKey={adminMeta.FhirEncKey}, EncID={adminMeta.FhirEncID}, EncOper={adminMeta.EncOper}, RecId={adminMeta.RecId}"
-            );
+         
+            File.AppendAllText(runLogFile,
+                $"BEFORE BUILD → " +
+                $"PatKey={adminMeta.FhirPatKey}, PatID={adminMeta.FhirPatID}, PatOper={adminMeta.PatOper}, " +
+                $"EncKey={adminMeta.FhirEncKey}, EncID={adminMeta.FhirEncID}, EncOper={adminMeta.EncOper}, RecId={adminMeta.RecId}" +
+                $"{Environment.NewLine}");
 
             //PLEASE DO NOT DELETE IT IS THE LUCKY CODE
             //if (adminMeta.PatOper != "USE")
